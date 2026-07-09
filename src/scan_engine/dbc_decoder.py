@@ -97,7 +97,11 @@ class DbcDecoder:
                 "can_id_hex": can_id_hex.upper(),
                 "signals": decoded,
             }
+        except cantools.database.errors.DecodeError:
+            return None
         except (KeyError, ValueError):
+            return None
+        except Exception:
             return None
 
     def coverage(self, can_ids: list[str]) -> dict:
