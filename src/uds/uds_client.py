@@ -15,6 +15,7 @@ from src.uds.uds_ecu_sim import (
     NEGATIVE_RESPONSE, POSITIVE_RESPONSE_OFFSET,
 )
 from src.scan_engine.dtc_reader import scan_dtcs
+from src.uds.uds_ecu_sim import dtc_to_bytes as _dtc_to_bytes
 
 
 # DTC status bit meanings (ISO 14229), for human-readable reporting
@@ -33,6 +34,26 @@ STATUS_BITS = {
 def decode_status(status: int) -> list[str]:
     """Expand a DTC status byte into the list of active status bits."""
     return [name for bit, name in STATUS_BITS.items() if status & bit]
+
+
+
+# Standard freeze-frame DIDs (OBD-II PIDs mapped to identifiers)
+FREEZE_DID_MEANING = {
+    0xF40C: ("engine_rpm", "rpm"),
+    0xF405: ("coolant_temp", "degC"),
+    0xF40D: ("vehicle_speed", "km/h"),
+    0xF404: ("engine_load", "%"),
+    0xF411: ("throttle_position", "%"),
+}
+
+
+def interpret_freeze_frame(raw: dict) -> dict:
+    """Turn raw freeze-frame DID/value pairs into named engineering conditions."""
+    conditions = {}
+    for did, value in raw.items():
+        name, unit = FREEZE_DID_MEANING.get(did, (f"DID_{did:04X}", ""))
+        conditions[name] = {"value": value, "unit": unit}
+    return conditions
 
 
 class UdsClient:
@@ -124,6 +145,28 @@ class UdsClient:
             return resp[1]
         return 0
 
+    def read_freeze_frame(self, code: str) -> dict:
+        """
+        Read the freeze-frame (snapshot) captured when a DTC was set.
+        Uses ReadDTCInformation sub-function 0x04.
+        """
+        dtc_bytes = _dtc_to_bytes(code)[:3]
+        request = bytes([SID_READ_DTC, 0x04]) + dtc_bytes
+        resp = self._transact(request)
+        if not self._is_positive(resp, SID_READ_DTC):
+            return {}
+        # resp: [respSID, sub, dtc(3), status, recordNumber, then DID/value pairs]
+        body = resp[7:]
+        raw = {}
+        for i in range(0, len(body), 4):
+            chunk = body[i:i + 4]
+            if len(chunk) < 4:
+                break
+            did = (chunk[0] << 8) | chunk[1]
+            value = int.from_bytes(chunk[2:4], "big", signed=True)
+            raw[did] = value
+        return interpret_freeze_frame(raw)
+
     def full_scan(self, lang: str = "fr") -> dict:
         """
         Complete diagnostic scan: session -> VIN -> DTCs -> interpretation.
@@ -143,6 +186,7 @@ class UdsClient:
             uds_info = status_by_code.get(result["code"], {})
             result["uds_status_byte"] = uds_info.get("status_byte")
             result["uds_status_bits"] = uds_info.get("status_bits", [])
+            result["freeze_frame"] = self.read_freeze_frame(result["code"])
 
         return {
             "vin": vin,
@@ -177,6 +221,12 @@ if __name__ == "__main__":
         print(f"  Gravite     : {d['severity_fr']}")
         print(f"  Statut UDS  : 0x{d['uds_status_byte']:02X} -> "
               f"{', '.join(d['uds_status_bits'])}")
+        ff = d.get("freeze_frame", {})
+        if ff:
+            conditions = ", ".join(
+                f"{name}={info['value']}{info['unit']}" for name, info in ff.items()
+            )
+            print(f"  Conditions au defaut : {conditions}")
         print(f"  Causes probables :")
         for cause in d["likely_causes_fr"][:3]:
             print(f"    - {cause}")

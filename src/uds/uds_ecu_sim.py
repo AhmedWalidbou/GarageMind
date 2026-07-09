@@ -63,9 +63,11 @@ def bytes_to_dtc(data: bytes) -> str:
 
 @dataclass
 class StoredDTC:
-    """A fault code as stored in the ECU memory."""
+    """A fault code as stored in the ECU memory, with freeze-frame data."""
     code: str
     status: int = STATUS_CONFIRMED | STATUS_TEST_FAILED
+    freeze_frame: dict = field(default_factory=dict)
+    occurrence_count: int = 1
 
 
 @dataclass
@@ -117,14 +119,31 @@ class UdsEcu:
                       payload[1], payload[2]]) + value
 
     def _handle_read_dtc(self, payload: bytes) -> bytes:
-        """Sub-function 0x02 = reportDTCByStatusMask (the common one)."""
         if len(payload) < 2:
             return self._negative(SID_READ_DTC, NRC_SUBFUNCTION_NOT_SUPPORTED)
         sub = payload[1]
-        response = bytes([SID_READ_DTC + POSITIVE_RESPONSE_OFFSET, sub, 0xFF])
-        for dtc in self.dtcs:
-            response += dtc_to_bytes(dtc.code)[:3] + bytes([dtc.status])
-        return response
+        resp_sid = SID_READ_DTC + POSITIVE_RESPONSE_OFFSET
+        if sub == 0x01:
+            count = len(self.dtcs)
+            return bytes([resp_sid, sub, 0xFF, 0x01]) + count.to_bytes(2, "big")
+        if sub == 0x02:
+            response = bytes([resp_sid, sub, 0xFF])
+            for dtc in self.dtcs:
+                response += dtc_to_bytes(dtc.code)[:3] + bytes([dtc.status])
+            return response
+        if sub == 0x04:
+            if len(payload) < 5:
+                return self._negative(SID_READ_DTC, NRC_REQUEST_OUT_OF_RANGE)
+            requested = payload[2:5]
+            target_code = bytes_to_dtc(requested)
+            for dtc in self.dtcs:
+                if dtc.code == target_code:
+                    response = bytes([resp_sid, sub]) + requested + bytes([dtc.status, 0x01])
+                    for did, value in dtc.freeze_frame.items():
+                        response += did.to_bytes(2, "big") + int(value).to_bytes(2, "big", signed=True)
+                    return response
+            return self._negative(SID_READ_DTC, NRC_REQUEST_OUT_OF_RANGE)
+        return self._negative(SID_READ_DTC, NRC_SUBFUNCTION_NOT_SUPPORTED)
 
     def _handle_clear_dtc(self, payload: bytes) -> bytes:
         cleared = len(self.dtcs)
@@ -146,9 +165,18 @@ def build_demo_ecu() -> UdsEcu:
             0xF195: bytes([0x01, 0x04]),         # software version 1.4
         },
         dtcs=[
-            StoredDTC("P0301", STATUS_CONFIRMED | STATUS_TEST_FAILED),
-            StoredDTC("P0401", STATUS_CONFIRMED),
-            StoredDTC("P2002", STATUS_CONFIRMED | STATUS_TEST_FAILED_THIS_CYCLE),
+            StoredDTC("P0301",
+                      STATUS_CONFIRMED | STATUS_TEST_FAILED,
+                      freeze_frame={0xF40C: 617, 0xF405: 92, 0xF40D: 0},
+                      occurrence_count=4),
+            StoredDTC("P0401",
+                      STATUS_CONFIRMED,
+                      freeze_frame={0xF40C: 1850, 0xF405: 88, 0xF40D: 45},
+                      occurrence_count=2),
+            StoredDTC("P2002",
+                      STATUS_CONFIRMED | STATUS_TEST_FAILED_THIS_CYCLE,
+                      freeze_frame={0xF40C: 2400, 0xF405: 95, 0xF40D: 70},
+                      occurrence_count=1),
         ],
     )
 
