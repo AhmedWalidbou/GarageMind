@@ -1,0 +1,52 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "garagemind"
+version = "1.0.0"
+description = "AI-powered vehicle diagnostic copilot: CAN bus analysis, UDS diagnostics, anomaly detection and agentic troubleshooting."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [
+    { name = "Ahmed Walid Bouanzoul" }
+]
+keywords = [
+    "automotive", "diagnostics", "can-bus", "uds", "iso-tp",
+    "obd-ii", "anomaly-detection", "llm", "rag", "agent",
+]
+classifiers = [
+    "Programming Language :: Python :: 3.11",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Intended Audience :: Developers",
+]
+
+dependencies = [
+    "cantools>=42.0",
+    "pandas>=2.0",
+    "numpy>=1.26",
+    "requests>=2.30",
+    "pyarrow>=15.0",
+    "matplotlib>=3.7",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+]
+
+[project.scripts]
+garagemind = "src.cli:main"
+
+[project.urls]
+Repository = "https://github.com/AhmedWalidbou/GarageMind"
+
+[tool.setuptools]
+packages = ["src", "src.scan_engine", "src.uds"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
