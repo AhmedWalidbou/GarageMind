@@ -23,7 +23,6 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
     "Intended Audience :: Developers",
 ]
-
 dependencies = [
     "cantools>=42.0",
     "pandas>=2.0",
@@ -31,6 +30,7 @@ dependencies = [
     "requests>=2.30",
     "pyarrow>=15.0",
     "matplotlib>=3.7",
+    "torch>=2.0",
 ]
 
 [project.optional-dependencies]
@@ -45,7 +45,7 @@ garagemind = "src.cli:main"
 Repository = "https://github.com/AhmedWalidbou/GarageMind"
 
 [tool.setuptools]
-packages = ["src", "src.scan_engine", "src.uds"]
+packages = ["src", "src.scan_engine", "src.uds", "src.anomaly"]
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
