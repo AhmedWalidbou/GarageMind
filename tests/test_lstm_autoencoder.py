@@ -1,8 +1,10 @@
 """
 Tests for src/anomaly/lstm_autoencoder.py
 Covers: architecture shapes, training loss decrease, scoring,
-threshold calibration and prediction logic. Uses a tiny model and
-synthetic data so the suite stays fast.
+unilateral (v1) and bilateral (v2) threshold calibration and prediction.
+The bilateral rule is the fix for the DoS failure analysis: floods are
+MORE regular than normal traffic, hence low reconstruction errors.
+Uses a tiny model and synthetic data so the suite stays fast.
 """
 
 import numpy as np
@@ -15,7 +17,9 @@ from src.anomaly.lstm_autoencoder import (
     train_autoencoder,
     reconstruction_errors,
     calibrate_threshold,
+    calibrate_thresholds,
     predict,
+    predict_bilateral,
 )
 
 WINDOW = 16
@@ -35,9 +39,14 @@ def normal_windows(n: int) -> np.ndarray:
 
 
 def attack_windows(n: int) -> np.ndarray:
-    """High-amplitude noise imitating flood traffic."""
+    """High-amplitude noise imitating irregular attack traffic."""
     rng = np.random.default_rng(1)
     return rng.uniform(0.8, 1.0, (n, WINDOW, FEATURES)).astype(np.float32)
+
+
+def flood_windows(n: int) -> np.ndarray:
+    """Perfectly constant traffic imitating a DoS flood (trivial to reconstruct)."""
+    return np.zeros((n, WINDOW, FEATURES), dtype=np.float32)
 
 
 class TestArchitecture:
@@ -89,7 +98,7 @@ class TestScoring:
         assert s_attack.mean() > s_normal.mean()
 
 
-class TestThresholdAndPrediction:
+class TestUnilateralThreshold:
     def test_threshold_is_percentile(self):
         scores = np.arange(100, dtype=np.float32)
         assert calibrate_threshold(scores, percentile=99.0) == pytest.approx(98.01)
@@ -99,11 +108,52 @@ class TestThresholdAndPrediction:
         preds = predict(scores, threshold=0.5)
         assert preds.tolist() == [0, 0, 1]
 
-    def test_end_to_end_detection(self):
+
+class TestBilateralThresholds:
+    def test_returns_ordered_bounds(self):
+        scores = np.arange(1000, dtype=np.float32)
+        low, high = calibrate_thresholds(scores, low_percentile=1.0, high_percentile=99.0)
+        assert low < high
+        assert low == pytest.approx(np.percentile(scores, 1.0))
+        assert high == pytest.approx(np.percentile(scores, 99.0))
+
+    def test_invalid_percentiles_raise(self):
+        scores = np.arange(100, dtype=np.float32)
+        with pytest.raises(ValueError):
+            calibrate_thresholds(scores, low_percentile=99.0, high_percentile=1.0)
+        with pytest.raises(ValueError):
+            calibrate_thresholds(scores, low_percentile=-1.0, high_percentile=99.0)
+
+    def test_predict_flags_both_sides(self):
+        scores = np.array([0.05, 0.5, 0.95], dtype=np.float32)
+        preds = predict_bilateral(scores, low=0.1, high=0.9)
+        assert preds.tolist() == [1, 0, 1]
+
+    def test_inside_band_is_normal(self):
+        scores = np.array([0.2, 0.5, 0.8], dtype=np.float32)
+        preds = predict_bilateral(scores, low=0.1, high=0.9)
+        assert preds.tolist() == [0, 0, 0]
+
+
+class TestEndToEndDetection:
+    def test_detects_irregular_and_flood_attacks(self):
         set_seed()
         model = tiny_model()
         X_normal = normal_windows(128)
         train_autoencoder(model, X_normal, epochs=15, batch_size=16, verbose=False)
-        threshold = calibrate_threshold(reconstruction_errors(model, X_normal))
-        preds_attack = predict(reconstruction_errors(model, attack_windows(32)), threshold)
+        s_train = reconstruction_errors(model, X_normal)
+        low, high = calibrate_thresholds(s_train)
+
+        preds_attack = predict_bilateral(
+            reconstruction_errors(model, attack_windows(32)), low, high
+        )
+        preds_flood = predict_bilateral(
+            reconstruction_errors(model, flood_windows(32)), low, high
+        )
+        preds_normal = predict_bilateral(
+            reconstruction_errors(model, normal_windows(64)), low, high
+        )
+
         assert preds_attack.mean() > 0.9
+        assert preds_flood.mean() > 0.9
+        assert preds_normal.mean() < 0.2

@@ -5,14 +5,25 @@ Sequence autoencoder for CAN traffic windows, trained on normal traffic only.
 Detection principle:
     The encoder compresses a window (window_size, n_features) into a latent
     vector; the decoder reconstructs the window from it. Trained exclusively
-    on normal traffic, the model reconstructs attack windows poorly, so the
-    per-window reconstruction error (MSE) is used as the anomaly score.
+    on normal traffic, the per-window reconstruction error (MSE) is used as
+    the anomaly score.
+
+Why detection is BILATERAL (failure analysis, v1 -> v2):
+    The naive rule "attack = high reconstruction error" scored ROC-AUC 0.056
+    on the HCRL DoS dataset: near-perfectly inverted ranking. Root cause: a
+    DoS flood hammers one CAN ID with constant payloads at near-zero
+    inter-arrival, producing sequences MORE regular than normal traffic and
+    therefore EASIER to reconstruct than the varied normal bus traffic.
+    An anomaly is any window whose error leaves the normal distribution in
+    EITHER direction: too high (unseen patterns) or too low (unnaturally
+    regular traffic such as floods). Both bounds are calibrated as
+    percentiles of the normal training scores.
 
 Threshold calibration:
-    The decision threshold is set to a high percentile (default 99th) of the
-    reconstruction errors on normal training windows. This is a standard,
-    label-free calibration: it assumes ~1% of normal windows may look odd,
-    and anything above is flagged as an attack.
+    low = low_percentile of normal scores (default 1st)
+    high = high_percentile of normal scores (default 99th)
+    Total false-alarm budget on normal traffic: ~2%. Calibration remains
+    label-free: only normal training windows are used.
 
 Design decisions:
     - The decoder receives the latent vector repeated at each timestep
@@ -147,10 +158,42 @@ def train_autoencoder(
 
 
 def calibrate_threshold(scores_normal: np.ndarray, percentile: float = 99.0) -> float:
-    """Threshold = given percentile of normal reconstruction errors."""
+    """Single upper threshold = given percentile of normal errors (v1 rule)."""
     return float(np.percentile(scores_normal, percentile))
 
 
+def calibrate_thresholds(
+    scores_normal: np.ndarray,
+    low_percentile: float = 1.0,
+    high_percentile: float = 99.0,
+) -> tuple[float, float]:
+    """
+    Bilateral thresholds from normal reconstruction errors (v2 rule).
+
+    Returns (low, high). A window is anomalous if its score falls outside
+    [low, high]. See module docstring for the failure analysis motivating
+    the lower bound.
+    """
+    if not 0.0 <= low_percentile < high_percentile <= 100.0:
+        raise ValueError(
+            f"need 0 <= low < high <= 100, got ({low_percentile}, {high_percentile})"
+        )
+    low = float(np.percentile(scores_normal, low_percentile))
+    high = float(np.percentile(scores_normal, high_percentile))
+    return low, high
+
+
 def predict(scores: np.ndarray, threshold: float) -> np.ndarray:
-    """Binary predictions from anomaly scores: 1 = attack, 0 = normal."""
+    """Binary predictions, upper threshold only (v1): 1 = attack."""
     return (scores > threshold).astype(np.int64)
+
+
+def predict_bilateral(scores: np.ndarray, low: float, high: float) -> np.ndarray:
+    """
+    Binary predictions with bilateral thresholds (v2): 1 = attack.
+
+    A window is flagged if its reconstruction error is below `low`
+    (unnaturally regular traffic, e.g. DoS flood) or above `high`
+    (unseen/irregular patterns).
+    """
+    return ((scores < low) | (scores > high)).astype(np.int64)
