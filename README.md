@@ -4,7 +4,7 @@ AI-powered vehicle diagnostic copilot: from raw CAN bus frames to an explainable
 
 GarageMind reads a vehicle's low-level data (CAN bus, OBD-II, UDS), decodes it into named physical signals, reads stored fault codes together with the conditions under which they occurred, and produces a prioritized diagnostic report. The end goal is an agentic assistant that reasons about faults the way an experienced mechanic does, cross-referencing live signals, fault codes and repair knowledge.
 
-Status: Module 1 (Scan Engine) is complete and tested. Modules 2 to 5 are in progress; see the roadmap.
+Status: Module 1 (Scan Engine) is complete and tested. Module 2 (Anomaly Benchmark Lab) has a full two-model benchmark on the four HCRL attack types, with stealthier datasets and sequence models planned as extensions. Modules 3 to 5 are in progress; see the roadmap.
 
 ## Motivation
 
@@ -19,7 +19,7 @@ A trouble code on its own is not a diagnosis. The same code can have different r
 | Module | Name | Status | Scope |
 |--------|------|--------|-------|
 | M1 | Scan Engine | Complete | CAN/DBC decoding, UDS diagnostics, unified diagnostic report |
-| M2 | Anomaly Benchmark Lab | In progress | LSTM autoencoder vs Transformers vs foundation models on CAN traffic |
+| M2 | Anomaly Benchmark Lab | Benchmarked (2 models) | LSTM autoencoder vs classical baseline on the 4 HCRL attacks; sequence models on stealthier data planned |
 | M3 | EBR-RAG | Planned | Retrieval over DTC definitions, repair manuals and solved cases |
 | M4 | Diagnostic Agent | Planned | LangGraph agent that asks clarifying questions and reasons over evidence |
 | M5 | Interface and Edge | Planned | Dashboard and a quantized edge SLM for on-device inference |
@@ -64,6 +64,56 @@ The report links each fault to the conditions under which it was recorded and ch
 
 The correlation layer is deliberately conservative: it only computes a z-score when the signal actually varies, and reports a constant-signal note otherwise, rather than emitting a meaningless statistic.
 
+## Module 2: Anomaly Benchmark Lab
+
+Benchmarks anomaly-detection models on real CAN intrusion data (HCRL Car-Hacking dataset: DoS, Fuzzy, gear spoofing, RPM spoofing), under a protocol designed so that results are comparable and reproducible.
+
+### Protocol
+
+Every model is evaluated on exactly the same data under the same rules:
+
+- Frames are parsed with a variable-DLC-aware loader (the flag is the last field of each row, not a fixed column), then enriched with per-frame features: log1p inter-arrival time, rolling CAN-ID frequency, DLC and the 8 zero-padded payload bytes.
+- The train/test split is temporal and performed on frames before windowing. Overlapping sliding windows (64 frames, stride 32) would leak identical frames into both sets under a random split.
+- Models are calibrated label-free: thresholds are percentiles of the anomaly scores on normal training windows only, with the same ~2 percent false-alarm budget for every model.
+- One fixed seed, identical windows for every model, shared metric code. Re-running the benchmark reproduces the published numbers to the fourth decimal.
+
+### Models
+
+LSTM autoencoder with bilateral thresholds. A seq2seq autoencoder trained on normal traffic only, scoring windows by reconstruction error. The naive rule "attack = high reconstruction error" failed spectacularly on DoS (ROC-AUC 0.056, a near-perfectly inverted ranking): a flood hammers one ID with constant payloads, producing traffic more regular than normal and therefore easier to reconstruct. The corrected rule is bilateral: a window is anomalous if its error leaves the normal P1-P99 band in either direction. That failure analysis is documented in the module docstring and kept in the code history.
+
+Isolation Forest baseline. A classical model on aggregated window statistics (mean, std, min, max per feature). Temporal order inside the window is deliberately discarded: the baseline measures how much of the signal is captured by distributional statistics alone.
+
+### Results (500k frames per dataset, seed 42)
+
+| Model | Attack | Precision | Recall | F1 | ROC-AUC |
+|-------|--------|-----------|--------|-----|---------|
+| lstm_ae | DoS | 0.956 | 0.599 | 0.7365 | 0.9073 |
+| iforest | DoS | 0.9933 | 0.9949 | 0.9941 | 0.9995 |
+| lstm_ae | Fuzzy | 0.9894 | 0.9918 | 0.9906 | 0.9991 |
+| iforest | Fuzzy | 0.9847 | 0.9995 | 0.9921 | 0.9999 |
+| lstm_ae | Gear | 0.9644 | 0.3615 | 0.5259 | 0.869 |
+| iforest | Gear | 0.9886 | 0.9993 | 0.9939 | 0.9998 |
+| lstm_ae | RPM | 0.9909 | 1.0 | 0.9954 | 1.0 |
+| iforest | RPM | 0.9834 | 0.9996 | 0.9914 | 0.9997 |
+
+### Findings
+
+The headline result is that the 40-line classical baseline outperforms the LSTM autoencoder on every HCRL attack, including the autoencoder's weak spot (gear spoofing: F1 0.99 versus 0.53). The mechanism is clear: HCRL attacks are massive injections, so the feature distribution inside an attacked window is violently shifted and aggregated statistics suffice; the autoencoder averages its reconstruction error over the window and is diluted by mixed windows. This matches the published observation that HCRL attacks are easy enough that they do not discriminate between detection methods.
+
+The honest conclusion, and the design principle for the rest of the module: sequence models must justify their complexity, and they can only do so on stealthy attacks. The planned extension evaluates the same protocol on the ROAD dataset (ORNL), whose flam-delivery fabrication and masquerade attacks inject single frames with legitimate IDs, precisely the regime where distributional statistics are expected to fail.
+
+Full metrics, configurations and confusion matrices are versioned in `results/benchmark_attacks.json`.
+
+### Reproducing
+
+```bash
+# Train and evaluate the LSTM AE on DoS with saved model and metrics
+python -m src.anomaly.train_lstm_ae
+
+# Full multi-model benchmark on all four attacks
+python -m src.anomaly.evaluate_attacks
+```
+
 ## Installation
 
 ```bash
@@ -78,7 +128,7 @@ pip install -e .
 
 The datasets are not bundled with the repository and must be obtained separately.
 
-CAN traffic: the HCRL Car-Hacking dataset (CAN logs captured from a Hyundai vehicle over the OBD-II port), available on Kaggle. Place the CSV files in data/raw/.
+CAN traffic: the HCRL Car-Hacking dataset (CAN logs captured from a Hyundai vehicle over the OBD-II port). Place the four CSV files (DoS_dataset.csv, Fuzzy_dataset.csv, gear_dataset.csv, RPM_dataset.csv) in data/raw/.
 
 DBC files: the OpenDBC project by comma.ai, cloned into data/dbc/.
 
@@ -117,17 +167,17 @@ These figures come from a generic DBC applied to a different vehicle variant tha
 pytest -v
 ```
 
-The suite contains 52 unit tests covering DTC encoding and interpretation, the ISO-TP transport layer including sequence-error detection, the UDS ECU simulator and client, the report generator including the zero-variance correlation edge case, and the command-line interface including exit codes and input validation.
+The suite contains 100 unit tests covering DTC encoding and interpretation, the ISO-TP transport layer including sequence-error detection, the UDS ECU simulator and client, the report generator including the zero-variance correlation edge case, the command-line interface including exit codes and input validation, the anomaly preprocessing pipeline (temporal-split leakage guards, window labeling at the threshold boundary), the LSTM autoencoder (architecture, training, bilateral calibration, end-to-end detection of both irregular and flood-like synthetic attacks) and the Isolation Forest baseline (aggregation verified value by value, determinism under a fixed seed).
 
 ## Technology and standards
 
-Python 3.11, cantools, pandas, numpy, pyarrow, matplotlib, pytest.
+Python 3.11, cantools, pandas, numpy, pyarrow, matplotlib, torch (CPU), scikit-learn, pytest.
 
 Standards implemented: ISO 11898 (CAN), ISO 15765-2 (ISO-TP), ISO 14229 (UDS), and OBD-II diagnostic trouble codes.
 
 ## Roadmap
 
-Module 2 will benchmark anomaly-detection approaches on the CAN traffic, comparing an LSTM autoencoder baseline against Transformer-based detectors and zero-shot time-series foundation models, and will make use of the dataset's real attack scenarios (denial of service, fuzzing, spoofing).
+Module 2 extensions: evaluate the same benchmark protocol on the ROAD dataset (ORNL), whose flam-delivery and masquerade attacks are the stealthiest publicly available, then introduce sequence models (Transformer-based detectors) that have to beat the classical baseline there to earn their place.
 
 Module 3 will add retrieval-augmented generation over repair manuals, DTC definitions and solved repair cases, in the spirit of experience-based repair systems used in professional workshops.
 
