@@ -1,5 +1,8 @@
 {
-  "model": "lstm_autoencoder_bilateral",
+  "models": [
+    "lstm_ae",
+    "iforest"
+  ],
   "config": {
     "nrows": 500000,
     "window_size": 64,
@@ -11,92 +14,146 @@
     "latent_size": 16,
     "low_percentile": 1.0,
     "high_percentile": 99.0,
+    "iforest_estimators": 200,
+    "iforest_percentile": 98.0,
     "seed": 42
   },
   "results": [
     {
+      "model": "lstm_ae",
       "dataset": "DoS",
-      "frames": 500000,
-      "attack_frame_ratio_pct": 20.95,
-      "test_windows": 4686,
-      "test_attack_ratio_pct": 37.94,
-      "threshold_low": 0.053989,
-      "threshold_high": 0.067601,
-      "final_loss": 0.060574,
       "precision": 0.956,
       "recall": 0.599,
       "f1": 0.7365,
-      "roc_auc_band_distance": 0.9073,
+      "roc_auc": 0.9073,
       "confusion": {
         "tn": 2859,
         "fp": 49,
         "fn": 713,
         "tp": 1065
       },
-      "runtime_sec": 43.6
+      "final_loss": 0.060574,
+      "threshold_low": 0.053989,
+      "threshold_high": 0.067601,
+      "runtime_context_sec": 30.7
     },
     {
+      "model": "iforest",
+      "dataset": "DoS",
+      "precision": 0.9933,
+      "recall": 0.9949,
+      "f1": 0.9941,
+      "roc_auc": 0.9995,
+      "confusion": {
+        "tn": 2896,
+        "fp": 12,
+        "fn": 9,
+        "tp": 1769
+      },
+      "threshold": 0.567485,
+      "runtime_context_sec": 30.7
+    },
+    {
+      "model": "lstm_ae",
       "dataset": "Fuzzy",
-      "frames": 500000,
-      "attack_frame_ratio_pct": 16.63,
-      "test_windows": 4686,
-      "test_attack_ratio_pct": 44.05,
-      "threshold_low": 0.055626,
-      "threshold_high": 0.071453,
-      "final_loss": 0.062676,
       "precision": 0.9894,
       "recall": 0.9918,
       "f1": 0.9906,
-      "roc_auc_band_distance": 0.9991,
+      "roc_auc": 0.9991,
       "confusion": {
         "tn": 2600,
         "fp": 22,
         "fn": 17,
         "tp": 2047
       },
-      "runtime_sec": 43.7
+      "final_loss": 0.062676,
+      "threshold_low": 0.055626,
+      "threshold_high": 0.071453,
+      "runtime_context_sec": 27.7
     },
     {
+      "model": "iforest",
+      "dataset": "Fuzzy",
+      "precision": 0.9847,
+      "recall": 0.9995,
+      "f1": 0.9921,
+      "roc_auc": 0.9999,
+      "confusion": {
+        "tn": 2590,
+        "fp": 32,
+        "fn": 1,
+        "tp": 2063
+      },
+      "threshold": 0.565406,
+      "runtime_context_sec": 27.7
+    },
+    {
+      "model": "lstm_ae",
       "dataset": "Gear",
-      "frames": 500000,
-      "attack_frame_ratio_pct": 17.58,
-      "test_windows": 4686,
-      "test_attack_ratio_pct": 57.49,
-      "threshold_low": 0.054312,
-      "threshold_high": 0.068337,
-      "final_loss": 0.060687,
       "precision": 0.9644,
       "recall": 0.3615,
       "f1": 0.5259,
-      "roc_auc_band_distance": 0.869,
+      "roc_auc": 0.869,
       "confusion": {
         "tn": 1956,
         "fp": 36,
         "fn": 1720,
         "tp": 974
       },
-      "runtime_sec": 46.8
+      "final_loss": 0.060687,
+      "threshold_low": 0.054312,
+      "threshold_high": 0.068337,
+      "runtime_context_sec": 21.2
     },
     {
+      "model": "iforest",
+      "dataset": "Gear",
+      "precision": 0.9886,
+      "recall": 0.9993,
+      "f1": 0.9939,
+      "roc_auc": 0.9998,
+      "confusion": {
+        "tn": 1961,
+        "fp": 31,
+        "fn": 2,
+        "tp": 2692
+      },
+      "threshold": 0.551026,
+      "runtime_context_sec": 21.2
+    },
+    {
+      "model": "lstm_ae",
       "dataset": "RPM",
-      "frames": 500000,
-      "attack_frame_ratio_pct": 17.98,
-      "test_windows": 4686,
-      "test_attack_ratio_pct": 55.55,
-      "threshold_low": 0.056336,
-      "threshold_high": 0.06907,
-      "final_loss": 0.062181,
       "precision": 0.9909,
       "recall": 1.0,
       "f1": 0.9954,
-      "roc_auc_band_distance": 1.0,
+      "roc_auc": 1.0,
       "confusion": {
         "tn": 2059,
         "fp": 24,
         "fn": 0,
         "tp": 2603
       },
-      "runtime_sec": 31.5
+      "final_loss": 0.062181,
+      "threshold_low": 0.056336,
+      "threshold_high": 0.06907,
+      "runtime_context_sec": 22.3
+    },
+    {
+      "model": "iforest",
+      "dataset": "RPM",
+      "precision": 0.9834,
+      "recall": 0.9996,
+      "f1": 0.9914,
+      "roc_auc": 0.9997,
+      "confusion": {
+        "tn": 2039,
+        "fp": 44,
+        "fn": 1,
+        "tp": 2602
+      },
+      "threshold": 0.546135,
+      "runtime_context_sec": 22.3
     }
   ]
 }
