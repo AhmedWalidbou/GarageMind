@@ -1,0 +1,156 @@
+{
+    "schema_version": "1.0",
+    "description": "Evaluation query set for the EBR retriever. Queries are phrased as a mechanic or customer would ask them, deliberately NOT copying corpus wording, so metrics measure semantic retrieval rather than string overlap. relevant_cases lists every acceptable case id.",
+    "queries": [
+      {
+        "id": "q-001",
+        "lang": "fr",
+        "query": "308 1.6 diesel qui perd de la puissance petit à petit, le voyant s'allume et elle régénère tout le temps, la cliente ne fait que de la ville",
+        "relevant_cases": ["case-001"]
+      },
+      {
+        "id": "q-002",
+        "lang": "fr",
+        "query": "Clio dCi 180000 km, ça broute à l'accélération et fume noir, ralenti qui tremble, de temps en temps mode dégradé",
+        "relevant_cases": ["case-002"]
+      },
+      {
+        "id": "q-003",
+        "lang": "fr",
+        "query": "208 PureTech bruit bizarre à froid côté distribution et perte de puissance, témoin d'huile qui clignote parfois",
+        "relevant_cases": ["case-003"]
+      },
+      {
+        "id": "q-004",
+        "lang": "en",
+        "query": "Golf 1.4 petrol misfiring on cylinder one when the engine is warm, CEL flashes when I push it",
+        "relevant_cases": ["case-004"]
+      },
+      {
+        "id": "q-005",
+        "lang": "fr",
+        "query": "code P0299 sur un 1.6 HDi, ça siffle et plus de puissance en montée, coupure au-dessus de 3000 tours",
+        "relevant_cases": ["case-005"]
+      },
+      {
+        "id": "q-006",
+        "lang": "en",
+        "query": "Toyota Corolla failed the emissions test, catalyst efficiency code, car burns some oil but drives fine",
+        "relevant_cases": ["case-006"]
+      },
+      {
+        "id": "q-007",
+        "lang": "fr",
+        "query": "plus de communication avec le calculateur moteur, compte-tours qui tombe à zéro par moments, plein de codes U sur tous les boîtiers",
+        "relevant_cases": ["case-007"]
+      },
+      {
+        "id": "q-008",
+        "lang": "fr",
+        "query": "C4 2.0 HDi cale à chaud et met longtemps à démarrer, pression de rail trop basse, on a trouvé de la limaille dans le filtre",
+        "relevant_cases": ["case-008"]
+      },
+      {
+        "id": "q-009",
+        "lang": "en",
+        "query": "battery light comes and goes, headlights dim at idle, weird low voltage codes stored in several modules",
+        "relevant_cases": ["case-009"]
+      },
+      {
+        "id": "q-010",
+        "lang": "fr",
+        "query": "Captur TCe qui cale n'importe quand une fois chaude, impossible de redémarrer pendant un quart d'heure puis ça repart",
+        "relevant_cases": ["case-010", "case-016"]
+      },
+      {
+        "id": "q-011",
+        "lang": "fr",
+        "query": "Kangoo dCi fume noir et n'avance plus, pas de sifflement, le débitmètre donne des valeurs bizarres",
+        "relevant_cases": ["case-011"]
+      },
+      {
+        "id": "q-012",
+        "lang": "fr",
+        "query": "diesel qui démarre très mal l'hiver avec de la fumée blanche au début, une fois chaud plus rien",
+        "relevant_cases": ["case-012"]
+      },
+      {
+        "id": "q-013",
+        "lang": "en",
+        "query": "Audi 2.0 TDI boost pressure all over the place on the motorway, limp mode, fine again after restarting",
+        "relevant_cases": ["case-013"]
+      },
+      {
+        "id": "q-014",
+        "lang": "fr",
+        "query": "mini cooper essence mélange trop pauvre, trims à +25%, petit sifflement au ralenti moteur froid",
+        "relevant_cases": ["case-014"]
+      },
+      {
+        "id": "q-015",
+        "lang": "fr",
+        "query": "boîte auto AL4 qui donne des coups entre la 2 et la 3 puis se bloque en 3ème, surtout quand elle est chaude",
+        "relevant_cases": ["case-015"]
+      },
+      {
+        "id": "q-016",
+        "lang": "fr",
+        "query": "Twingo qui cale d'un coup, plus de compte-tours au démarreur, et 20 minutes après elle redémarre nickel",
+        "relevant_cases": ["case-016", "case-010"]
+      },
+      {
+        "id": "q-017",
+        "lang": "fr",
+        "query": "capteur de pression différentielle FAP en défaut, le calculateur croit que le filtre est plein alors que le client fait de l'autoroute",
+        "relevant_cases": ["case-017"]
+      },
+      {
+        "id": "q-018",
+        "lang": "en",
+        "query": "Fiat Panda EGR electrical fault code that keeps coming back right after clearing, valve itself tests fine",
+        "relevant_cases": ["case-018"]
+      },
+      {
+        "id": "q-019",
+        "lang": "fr",
+        "query": "P2096 sur une Polo TSI, hésitations légères sur autoroute, une trace de suie au niveau de la jonction du catalyseur",
+        "relevant_cases": ["case-019"]
+      },
+      {
+        "id": "q-020",
+        "lang": "fr",
+        "query": "Focus 1.6 diesel impossible à démarrer à chaud, ça sent le gazole sous le capot, retour d'injecteurs suspect",
+        "relevant_cases": ["case-020"]
+      },
+      {
+        "id": "q-021",
+        "lang": "fr",
+        "query": "quelles pannes typiques donnent le code P2002 sur les diesels PSA",
+        "relevant_cases": ["case-001"]
+      },
+      {
+        "id": "q-022",
+        "lang": "en",
+        "query": "what usually causes a P0301 code",
+        "relevant_cases": ["case-004"]
+      },
+      {
+        "id": "q-023",
+        "lang": "fr",
+        "query": "voyant moteur et perte de puissance sur diesel urbain, filtre à particules suspecté",
+        "relevant_cases": ["case-001", "case-017"]
+      },
+      {
+        "id": "q-024",
+        "lang": "fr",
+        "query": "problème de turbo sur diesel avec entretien négligé, vidanges espacées",
+        "relevant_cases": ["case-005", "case-013"]
+      },
+      {
+        "id": "q-025",
+        "lang": "en",
+        "query": "car stalls when hot and restarts after cooling down, no fault visible when cold",
+        "relevant_cases": ["case-010", "case-016"]
+      }
+    ]
+  }
