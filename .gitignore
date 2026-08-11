@@ -1,8 +1,17 @@
+# Secrets
 .env
-data/raw/
+
+# Heavy or regenerable artifacts (datasets, DBC collections, vector index, model weights)
+data/
+models/
+
+# Python
 __pycache__/
 *.pyc
-
 *.egg-info/
 build/
 dist/
+.pytest_cache/
+
+# OS
+Thumbs.db
