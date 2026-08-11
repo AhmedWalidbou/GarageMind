@@ -31,6 +31,9 @@ dependencies = [
     "pyarrow>=15.0",
     "matplotlib>=3.7",
     "torch>=2.0",
+    "scikit-learn>=1.4",
+    "sentence-transformers>=5.7",
+    "qdrant-client>=1.19",
 ]
 
 [project.optional-dependencies]
@@ -45,7 +48,7 @@ garagemind = "src.cli:main"
 Repository = "https://github.com/AhmedWalidbou/GarageMind"
 
 [tool.setuptools]
-packages = ["src", "src.scan_engine", "src.uds", "src.anomaly"]
+packages = ["src", "src.scan_engine", "src.uds", "src.anomaly", "src.ebr"]
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
