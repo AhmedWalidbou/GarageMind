@@ -34,6 +34,7 @@ dependencies = [
     "scikit-learn>=1.4",
     "sentence-transformers>=5.7",
     "qdrant-client>=1.19",
+    "rank-bm25>=0.2",
 ]
 
 [project.optional-dependencies]
