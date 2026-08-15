@@ -1,38 +1,42 @@
 """
-Retrieval evaluation - GarageMind M3 EBR-RAG
-Runs the 25-query evaluation set against the persistent index and
-reports Hit@k, MRR, per-language breakdown and query latency.
+Retrieval benchmark - GarageMind M3 EBR-RAG
+Runs the 25-query evaluation set through two retrievers - dense
+(e5-small + Qdrant) and lexical (BM25) - with a single shared harness,
+and reports Hit@k, MRR, per-language breakdown, latency and per-query
+divergences.
 
 Design decisions:
+    - One harness, two retrievers: both systems expose
+      retrieve(query, top_k) -> list[RetrievedCase], so the exact same
+      evaluation code path scores both. Protocol divergence is
+      impossible by construction.
     - Hit@k ("success at k"): a query is solved at k if at least one
-      acceptable case id appears in the top-k unique cases. The query
-      set defines relevant_cases as "every acceptable case id", so any
-      of them serves the mechanic equally well; requiring all of them
-      would punish queries that are ambiguous by design.
-    - MRR uses the rank of the first relevant case: it rewards putting
-      an acceptable answer as high as possible.
-    - Per-language aggregates (fr/en) expose cross-lingual asymmetry
-      that global averages would hide (18 fr / 7 en: the en slice is
-      indicative only).
+      acceptable case id appears in the top-k unique cases (the query
+      set defines relevant_cases as "every acceptable case id").
+    - MRR uses the rank of the first relevant case.
+    - Raw scores are never compared across systems (cosine and BM25
+      live on different scales): only ranks and rank-based metrics.
+    - The divergence report (queries solved at rank 1 by exactly one
+      system) is the benchmark's most informative output: it shows
+      where semantics beat lexical matching and vice versa.
     - Fail fast on a missing or wrong-cardinality index: metrics
       computed on a stale index are worse than no metrics.
-    - The model is warmed up before timing so the first query's latency
-      does not include model loading.
-    - Per-query rows are persisted to results/ for failure analysis;
-      aggregates feed the README table.
 """
 
 import json
 import time
 from pathlib import Path
 
+from src.ebr.corpus import load_documents
 from src.ebr.embedder import Embedder
+from src.ebr.lexical import LexicalRetriever
 from src.ebr.retriever import Retriever
 from src.ebr.vectorstore import VectorStore
 
+KNOWLEDGE_PATH = Path("knowledge/repair_cases.json")
 QUERIES_PATH = Path("knowledge/eval_queries.json")
 INDEX_PATH = Path("data/qdrant")
-RESULTS_PATH = Path("results/retrieval_eval.json")
+RESULTS_PATH = Path("results/retrieval_benchmark.json")
 EXPECTED_POINTS = 40
 TOP_K = 5
 K_LEVELS = (1, 3, 5)
@@ -47,7 +51,7 @@ def load_queries(path: Path) -> list[dict]:
     return queries
 
 
-def evaluate_query(retriever: Retriever, query: dict) -> dict:
+def evaluate_query(retriever, query: dict) -> dict:
     t0 = time.perf_counter()
     results = retriever.retrieve(query["query"], top_k=TOP_K)
     latency_ms = (time.perf_counter() - t0) * 1000.0
@@ -73,7 +77,7 @@ def evaluate_query(retriever: Retriever, query: dict) -> dict:
         "reciprocal_rank": (
             0.0 if first_rank is None else round(1.0 / first_rank, 4)
         ),
-        "latency_ms": round(latency_ms, 1),
+        "latency_ms": round(latency_ms, 2),
     }
 
 
@@ -92,6 +96,66 @@ def aggregate(rows: list[dict]) -> dict:
     }
 
 
+def latency_stats(rows: list[dict]) -> dict:
+    latencies = sorted(r["latency_ms"] for r in rows)
+    p95 = latencies[max(0, round(0.95 * (len(latencies) - 1)))]
+    return {"mean": round(mean(latencies), 2), "p95": p95}
+
+
+def print_table(all_rows: dict) -> None:
+    print(f"\n{'system':10}{'slice':9}{'n':>4}"
+          f"{'hit@1':>8}{'hit@3':>8}{'hit@5':>8}{'MRR':>8}{'lat ms':>10}")
+    for name, rows in all_rows.items():
+        lat = latency_stats(rows)
+        slices = [("overall", rows)] + [
+            (lang, [r for r in rows if r["lang"] == lang])
+            for lang in sorted({r["lang"] for r in rows})
+        ]
+        for label, subset in slices:
+            agg = aggregate(subset)
+            lat_str = (
+                f"{lat['mean']:.0f}/{lat['p95']:.0f}"
+                if label == "overall" else ""
+            )
+            print(
+                f"{name:10}{label:9}{agg['n_queries']:>4}"
+                f"{agg['hit@1']:>8.2f}{agg['hit@3']:>8.2f}"
+                f"{agg['hit@5']:>8.2f}{agg['mrr']:>8.4f}{lat_str:>10}"
+            )
+
+
+def print_divergences(queries: list[dict], all_rows: dict) -> None:
+    print("\nqueries solved at rank 1 by exactly one system:")
+    names = list(all_rows.keys())
+    found = False
+    for i, q in enumerate(queries):
+        hits = {n: all_rows[n][i]["hits"]["hit@1"] for n in names}
+        if len(set(hits.values())) > 1:
+            found = True
+            winner = max(hits, key=hits.get)
+            ranks = ", ".join(
+                f"{n} rank {all_rows[n][i]['first_relevant_rank']}"
+                for n in names
+            )
+            print(f"  {q['id']} [{q['lang']}] -> {winner} wins ({ranks})")
+    if not found:
+        print("  none - identical hit@1 behavior")
+
+
+def print_failures(all_rows: dict) -> None:
+    for name, rows in all_rows.items():
+        failures = [r for r in rows if r["hits"]["hit@1"] == 0]
+        print(f"\n{name}: {len(failures)} queries not solved at rank 1")
+        for r in failures:
+            top = r["retrieved"][0] if r["retrieved"] else None
+            got = f"{top['case_id']}" if top else "nothing"
+            print(
+                f"  {r['id']} [{r['lang']}] expected "
+                f"{'/'.join(r['relevant_cases'])} -> top1 {got} "
+                f"(first relevant at rank {r['first_relevant_rank']})"
+            )
+
+
 def main() -> None:
     queries = load_queries(QUERIES_PATH)
 
@@ -108,59 +172,54 @@ def main() -> None:
             f"{EXPECTED_POINTS} - run scripts/build_index.py first"
         )
 
-    embedder = Embedder()
-    retriever = Retriever(embedder, store)
+    documents = load_documents(KNOWLEDGE_PATH)
+    if len(documents) != EXPECTED_POINTS:
+        raise SystemExit(
+            f"knowledge base yields {len(documents)} documents, expected "
+            f"{EXPECTED_POINTS}"
+        )
 
-    print("Warming up the model ...")
+    embedder = Embedder()
+    systems = {
+        "dense": Retriever(embedder, store),
+        "bm25": LexicalRetriever(documents),
+    }
+
+    print("Warming up the dense model ...")
     embedder.embed_query("warmup")
 
-    print(f"Evaluating {len(queries)} queries (top_k={TOP_K}) ...\n")
-    rows = [evaluate_query(retriever, q) for q in queries]
+    all_rows: dict[str, list[dict]] = {}
+    for name, retriever in systems.items():
+        print(f"Evaluating {name} on {len(queries)} queries (top_k={TOP_K}) ...")
+        all_rows[name] = [evaluate_query(retriever, q) for q in queries]
 
-    overall = aggregate(rows)
-    by_lang = {
-        lang: aggregate([r for r in rows if r["lang"] == lang])
-        for lang in sorted({r["lang"] for r in rows})
-    }
-    latencies = sorted(r["latency_ms"] for r in rows)
-    p95 = latencies[max(0, round(0.95 * (len(latencies) - 1)))]
-
-    print(f"{'':10}{'n':>4}{'hit@1':>8}{'hit@3':>8}{'hit@5':>8}{'MRR':>8}")
-    for label, agg in [("overall", overall)] + list(by_lang.items()):
-        print(
-            f"{label:10}{agg['n_queries']:>4}"
-            f"{agg['hit@1']:>8.2f}{agg['hit@3']:>8.2f}"
-            f"{agg['hit@5']:>8.2f}{agg['mrr']:>8.4f}"
-        )
-    print(f"\nlatency: mean {mean(latencies):.0f} ms, p95 {p95:.0f} ms")
-
-    failures = [r for r in rows if r["hits"]["hit@1"] == 0]
-    if failures:
-        print(f"\nqueries not solved at rank 1 ({len(failures)}):")
-        for r in failures:
-            got = ", ".join(
-                f"{h['case_id']}({h['score']:.3f})" for h in r["retrieved"][:3]
-            )
-            print(
-                f"  {r['id']} [{r['lang']}] expected "
-                f"{'/'.join(r['relevant_cases'])} -> got {got}"
-            )
-    else:
-        print("\nall queries solved at rank 1")
+    print_table(all_rows)
+    print_divergences(queries, all_rows)
+    print_failures(all_rows)
 
     RESULTS_PATH.parent.mkdir(parents=True, exist_ok=True)
     payload = {
         "protocol": {
-            "model": embedder.model_name,
+            "dense_model": embedder.model_name,
+            "lexical": "BM25Okapi (rank-bm25), lowercase + NFKD accent "
+                       "stripping + alphanumeric tokens",
             "top_k": TOP_K,
             "k_levels": list(K_LEVELS),
             "index_points": count,
             "queries_file": str(QUERIES_PATH),
         },
-        "overall": overall,
-        "by_lang": by_lang,
-        "latency_ms": {"mean": round(mean(latencies), 1), "p95": p95},
-        "per_query": rows,
+        "systems": {
+            name: {
+                "overall": aggregate(rows),
+                "by_lang": {
+                    lang: aggregate([r for r in rows if r["lang"] == lang])
+                    for lang in sorted({r["lang"] for r in rows})
+                },
+                "latency_ms": latency_stats(rows),
+                "per_query": rows,
+            }
+            for name, rows in all_rows.items()
+        },
     }
     with open(RESULTS_PATH, "w", encoding="utf-8") as f:
         json.dump(payload, f, ensure_ascii=False, indent=2)

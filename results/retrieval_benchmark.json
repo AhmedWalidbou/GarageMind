@@ -1,0 +1,2188 @@
+{
+  "protocol": {
+    "dense_model": "intfloat/multilingual-e5-small",
+    "lexical": "BM25Okapi (rank-bm25), lowercase + NFKD accent stripping + alphanumeric tokens",
+    "top_k": 5,
+    "k_levels": [
+      1,
+      3,
+      5
+    ],
+    "index_points": 40,
+    "queries_file": "knowledge\\eval_queries.json"
+  },
+  "systems": {
+    "dense": {
+      "overall": {
+        "n_queries": 25,
+        "hit@1": 0.88,
+        "hit@3": 0.96,
+        "hit@5": 1.0,
+        "mrr": 0.928
+      },
+      "by_lang": {
+        "en": {
+          "n_queries": 7,
+          "hit@1": 0.8571,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 0.9286
+        },
+        "fr": {
+          "n_queries": 18,
+          "hit@1": 0.8889,
+          "hit@3": 0.9444,
+          "hit@5": 1.0,
+          "mrr": 0.9278
+        }
+      },
+      "latency_ms": {
+        "mean": 29.87,
+        "p95": 39.62
+      },
+      "per_query": [
+        {
+          "id": "q-001",
+          "lang": "fr",
+          "relevant_cases": [
+            "case-001"
+          ],
+          "retrieved": [
+            {
+              "case_id": "case-001",
+              "lang": "fr",
+              "score": 0.8318
+            },
+            {
+              "case_id": "case-014",
+              "lang": "fr",
+              "score": 0.8257
+            },
+            {
+              "case_id": "case-013",
+              "lang": "fr",
+              "score": 0.8244
+            },
+            {
+              "case_id": "case-011",
+              "lang": "fr",
+              "score": 0.8236
+            },
+            {
+              "case_id": "case-002",
+              "lang": "fr",
+              "score": 0.8223
+            }
+          ],
+          "first_relevant_rank": 1,
+          "hits": {
+            "hit@1": 1,
+            "hit@3": 1,
+            "hit@5": 1
+          },
+          "reciprocal_rank": 1.0,
+          "latency_ms": 53.14
+        },
+        {
+          "id": "q-002",
+          "lang": "fr",
+          "relevant_cases": [
+            "case-002"
+          ],
+          "retrieved": [
+            {
+              "case_id": "case-002",
+              "lang": "fr",
+              "score": 0.8631
+            },
+            {
+              "case_id": "case-011",
+              "lang": "fr",
+              "score": 0.8526
+            },
+            {
+              "case_id": "case-014",
+              "lang": "fr",
+              "score": 0.8482
+            },
+            {
+              "case_id": "case-013",
+              "lang": "fr",
+              "score": 0.8473
+            },
+            {
+              "case_id": "case-016",
+              "lang": "fr",
+              "score": 0.8463
+            }
+          ],
+          "first_relevant_rank": 1,
+          "hits": {
+            "hit@1": 1,
+            "hit@3": 1,
+            "hit@5": 1
+          },
+          "reciprocal_rank": 1.0,
+          "latency_ms": 32.14
+        },
+        {
+          "id": "q-003",
+          "lang": "fr",
+          "relevant_cases": [
+            "case-003"
+          ],
+          "retrieved": [
+            {
+              "case_id": "case-003",
+              "lang": "fr",
+              "score": 0.8749
+            },
+            {
+              "case_id": "case-012",
+              "lang": "fr",
+              "score": 0.8614
+            },
+            {
+              "case_id": "case-011",
+              "lang": "fr",
+              "score": 0.8529
+            },
+            {
+              "case_id": "case-006",
+              "lang": "fr",
+              "score": 0.8504
+            },
+            {
+              "case_id": "case-007",
+              "lang": "fr",
+              "score": 0.8486
+            }
+          ],
+          "first_relevant_rank": 1,
+          "hits": {
+            "hit@1": 1,
+            "hit@3": 1,
+            "hit@5": 1
+          },
+          "reciprocal_rank": 1.0,
+          "latency_ms": 27.17
+        },
+        {
+          "id": "q-004",
+          "lang": "en",
+          "relevant_cases": [
+            "case-004"
+          ],
+          "retrieved": [
+            {
+              "case_id": "case-004",
+              "lang": "en",
+              "score": 0.8882
+            },
+            {
+              "case_id": "case-011",
+              "lang": "en",
+              "score": 0.8563
+            },
+            {
+              "case_id": "case-010",
+              "lang": "en",
+              "score": 0.8563
+            },
+            {
+              "case_id": "case-015",
+              "lang": "en",
+              "score": 0.8543
+            },
+            {
+              "case_id": "case-018",
+              "lang": "en",
+              "score": 0.8528
+            }
+          ],
+          "first_relevant_rank": 1,
+          "hits": {
+            "hit@1": 1,
+            "hit@3": 1,
+            "hit@5": 1
+          },
+          "reciprocal_rank": 1.0,
+          "latency_ms": 28.77
+        },
+        {
+          "id": "q-005",
+          "lang": "fr",
+          "relevant_cases": [
+            "case-005"
+          ],
+          "retrieved": [
+            {
+              "case_id": "case-005",
+              "lang": "fr",
+              "score": 0.871
+            },
+            {
+              "case_id": "case-014",
+              "lang": "fr",
+              "score": 0.8503
+            },
+            {
+              "case_id": "case-011",
+              "lang": "fr",
+              "score": 0.8495
+            },
+            {
+              "case_id": "case-002",
+              "lang": "fr",
+              "score": 0.8456
+            },
+            {
+              "case_id": "case-013",
+              "lang": "fr",
+              "score": 0.8444
+            }
+          ],
+          "first_relevant_rank": 1,
+          "hits": {
+            "hit@1": 1,
+            "hit@3": 1,
+            "hit@5": 1
+          },
+          "reciprocal_rank": 1.0,
+          "latency_ms": 30.0
+        },
+        {
+          "id": "q-006",
+          "lang": "en",
+          "relevant_cases": [
+            "case-006"
+          ],
+          "retrieved": [
+            {
+              "case_id": "case-006",
+              "lang": "en",
+              "score": 0.8666
+            },
+            {
+              "case_id": "case-011",
+              "lang": "en",
+              "score": 0.8572
+            },
+            {
+              "case_id": "case-004",
+              "lang": "en",
+              "score": 0.8461
+            },
+            {
+              "case_id": "case-007",
+              "lang": "en",
+              "score": 0.8432
+            },
+            {
+              "case_id": "case-020",
+              "lang": "en",
+              "score": 0.8429
+            }
+          ],
+          "first_relevant_rank": 1,
+          "hits": {
+            "hit@1": 1,
+            "hit@3": 1,
+            "hit@5": 1
+          },
+          "reciprocal_rank": 1.0,
+          "latency_ms": 32.23
+        },
+        {
+          "id": "q-007",
+          "lang": "fr",
+          "relevant_cases": [
+            "case-007"
+          ],
+          "retrieved": [
+            {
+              "case_id": "case-007",
+              "lang": "fr",
+              "score": 0.872
+            },
+            {
+              "case_id": "case-009",
+              "lang": "fr",
+              "score": 0.8439
+            },
+            {
+              "case_id": "case-015",
+              "lang": "fr",
+              "score": 0.8395
+            },
+            {
+              "case_id": "case-002",
+              "lang": "fr",
+              "score": 0.8357
+            },
+            {
+              "case_id": "case-013",
+              "lang": "fr",
+              "score": 0.8349
+            }
+          ],
+          "first_relevant_rank": 1,
+          "hits": {
+            "hit@1": 1,
+            "hit@3": 1,
+            "hit@5": 1
+          },
+          "reciprocal_rank": 1.0,
+          "latency_ms": 33.01
+        },
+        {
+          "id": "q-008",
+          "lang": "fr",
+          "relevant_cases": [
+            "case-008"
+          ],
+          "retrieved": [
+            {
+              "case_id": "case-008",
+              "lang": "fr",
+              "score": 0.8684
+            },
+            {
+              "case_id": "case-012",
+              "lang": "fr",
+              "score": 0.8499
+            },
+            {
+              "case_id": "case-011",
+              "lang": "fr",
+              "score": 0.8497
+            },
+            {
+              "case_id": "case-013",
+              "lang": "fr",
+              "score": 0.8497
+            },
+            {
+              "case_id": "case-014",
+              "lang": "fr",
+              "score": 0.8495
+            }
+          ],
+          "first_relevant_rank": 1,
+          "hits": {
+            "hit@1": 1,
+            "hit@3": 1,
+            "hit@5": 1
+          },
+          "reciprocal_rank": 1.0,
+          "latency_ms": 30.41
+        },
+        {
+          "id": "q-009",
+          "lang": "en",
+          "relevant_cases": [
+            "case-009"
+          ],
+          "retrieved": [
+            {
+              "case_id": "case-009",
+              "lang": "en",
+              "score": 0.8862
+            },
+            {
+              "case_id": "case-015",
+              "lang": "en",
+              "score": 0.8556
+            },
+            {
+              "case_id": "case-011",
+              "lang": "en",
+              "score": 0.8552
+            },
+            {
+              "case_id": "case-007",
+              "lang": "en",
+              "score": 0.854
+            },
+            {
+              "case_id": "case-002",
+              "lang": "en",
+              "score": 0.8511
+            }
+          ],
+          "first_relevant_rank": 1,
+          "hits": {
+            "hit@1": 1,
+            "hit@3": 1,
+            "hit@5": 1
+          },
+          "reciprocal_rank": 1.0,
+          "latency_ms": 30.11
+        },
+        {
+          "id": "q-010",
+          "lang": "fr",
+          "relevant_cases": [
+            "case-010",
+            "case-016"
+          ],
+          "retrieved": [
+            {
+              "case_id": "case-010",
+              "lang": "fr",
+              "score": 0.861
+            },
+            {
+              "case_id": "case-016",
+              "lang": "fr",
+              "score": 0.8595
+            },
+            {
+              "case_id": "case-015",
+              "lang": "fr",
+              "score": 0.8533
+            },
+            {
+              "case_id": "case-012",
+              "lang": "fr",
+              "score": 0.8517
+            },
+            {
+              "case_id": "case-011",
+              "lang": "fr",
+              "score": 0.8429
+            }
+          ],
+          "first_relevant_rank": 1,
+          "hits": {
+            "hit@1": 1,
+            "hit@3": 1,
+            "hit@5": 1
+          },
+          "reciprocal_rank": 1.0,
+          "latency_ms": 33.86
+        },
+        {
+          "id": "q-011",
+          "lang": "fr",
+          "relevant_cases": [
+            "case-011"
+          ],
+          "retrieved": [
+            {
+              "case_id": "case-011",
+              "lang": "fr",
+              "score": 0.8581
+            },
+            {
+              "case_id": "case-002",
+              "lang": "fr",
+              "score": 0.8404
+            },
+            {
+              "case_id": "case-013",
+              "lang": "fr",
+              "score": 0.8351
+            },
+            {
+              "case_id": "case-014",
+              "lang": "fr",
+              "score": 0.8315
+            },
+            {
+              "case_id": "case-012",
+              "lang": "fr",
+              "score": 0.8313
+            }
+          ],
+          "first_relevant_rank": 1,
+          "hits": {
+            "hit@1": 1,
+            "hit@3": 1,
+            "hit@5": 1
+          },
+          "reciprocal_rank": 1.0,
+          "latency_ms": 35.35
+        },
+        {
+          "id": "q-012",
+          "lang": "fr",
+          "relevant_cases": [
+            "case-012"
+          ],
+          "retrieved": [
+            {
+              "case_id": "case-012",
+              "lang": "fr",
+              "score": 0.8826
+            },
+            {
+              "case_id": "case-020",
+              "lang": "fr",
+              "score": 0.8564
+            },
+            {
+              "case_id": "case-011",
+              "lang": "fr",
+              "score": 0.8527
+            },
+            {
+              "case_id": "case-013",
+              "lang": "fr",
+              "score": 0.8505
+            },
+            {
+              "case_id": "case-001",
+              "lang": "fr",
+              "score": 0.8497
+            }
+          ],
+          "first_relevant_rank": 1,
+          "hits": {
+            "hit@1": 1,
+            "hit@3": 1,
+            "hit@5": 1
+          },
+          "reciprocal_rank": 1.0,
+          "latency_ms": 34.76
+        },
+        {
+          "id": "q-013",
+          "lang": "en",
+          "relevant_cases": [
+            "case-013"
+          ],
+          "retrieved": [
+            {
+              "case_id": "case-013",
+              "lang": "en",
+              "score": 0.867
+            },
+            {
+              "case_id": "case-008",
+              "lang": "en",
+              "score": 0.8389
+            },
+            {
+              "case_id": "case-005",
+              "lang": "en",
+              "score": 0.8384
+            },
+            {
+              "case_id": "case-015",
+              "lang": "en",
+              "score": 0.8297
+            },
+            {
+              "case_id": "case-001",
+              "lang": "en",
+              "score": 0.8295
+            }
+          ],
+          "first_relevant_rank": 1,
+          "hits": {
+            "hit@1": 1,
+            "hit@3": 1,
+            "hit@5": 1
+          },
+          "reciprocal_rank": 1.0,
+          "latency_ms": 32.08
+        },
+        {
+          "id": "q-014",
+          "lang": "fr",
+          "relevant_cases": [
+            "case-014"
+          ],
+          "retrieved": [
+            {
+              "case_id": "case-014",
+              "lang": "fr",
+              "score": 0.879
+            },
+            {
+              "case_id": "case-013",
+              "lang": "fr",
+              "score": 0.8587
+            },
+            {
+              "case_id": "case-011",
+              "lang": "fr",
+              "score": 0.8553
+            },
+            {
+              "case_id": "case-012",
+              "lang": "fr",
+              "score": 0.8551
+            },
+            {
+              "case_id": "case-005",
+              "lang": "fr",
+              "score": 0.854
+            }
+          ],
+          "first_relevant_rank": 1,
+          "hits": {
+            "hit@1": 1,
+            "hit@3": 1,
+            "hit@5": 1
+          },
+          "reciprocal_rank": 1.0,
+          "latency_ms": 29.04
+        },
+        {
+          "id": "q-015",
+          "lang": "fr",
+          "relevant_cases": [
+            "case-015"
+          ],
+          "retrieved": [
+            {
+              "case_id": "case-015",
+              "lang": "fr",
+              "score": 0.8714
+            },
+            {
+              "case_id": "case-012",
+              "lang": "fr",
+              "score": 0.8601
+            },
+            {
+              "case_id": "case-010",
+              "lang": "fr",
+              "score": 0.8517
+            },
+            {
+              "case_id": "case-004",
+              "lang": "fr",
+              "score": 0.8472
+            },
+            {
+              "case_id": "case-013",
+              "lang": "fr",
+              "score": 0.8416
+            }
+          ],
+          "first_relevant_rank": 1,
+          "hits": {
+            "hit@1": 1,
+            "hit@3": 1,
+            "hit@5": 1
+          },
+          "reciprocal_rank": 1.0,
+          "latency_ms": 23.26
+        },
+        {
+          "id": "q-016",
+          "lang": "fr",
+          "relevant_cases": [
+            "case-016",
+            "case-010"
+          ],
+          "retrieved": [
+            {
+              "case_id": "case-014",
+              "lang": "fr",
+              "score": 0.8173
+            },
+            {
+              "case_id": "case-005",
+              "lang": "fr",
+              "score": 0.8135
+            },
+            {
+              "case_id": "case-013",
+              "lang": "fr",
+              "score": 0.8134
+            },
+            {
+              "case_id": "case-012",
+              "lang": "fr",
+              "score": 0.8133
+            },
+            {
+              "case_id": "case-016",
+              "lang": "fr",
+              "score": 0.8133
+            }
+          ],
+          "first_relevant_rank": 5,
+          "hits": {
+            "hit@1": 0,
+            "hit@3": 0,
+            "hit@5": 1
+          },
+          "reciprocal_rank": 0.2,
+          "latency_ms": 24.14
+        },
+        {
+          "id": "q-017",
+          "lang": "fr",
+          "relevant_cases": [
+            "case-017"
+          ],
+          "retrieved": [
+            {
+              "case_id": "case-017",
+              "lang": "fr",
+              "score": 0.8787
+            },
+            {
+              "case_id": "case-011",
+              "lang": "fr",
+              "score": 0.855
+            },
+            {
+              "case_id": "case-007",
+              "lang": "fr",
+              "score": 0.8534
+            },
+            {
+              "case_id": "case-001",
+              "lang": "fr",
+              "score": 0.8519
+            },
+            {
+              "case_id": "case-019",
+              "lang": "fr",
+              "score": 0.8509
+            }
+          ],
+          "first_relevant_rank": 1,
+          "hits": {
+            "hit@1": 1,
+            "hit@3": 1,
+            "hit@5": 1
+          },
+          "reciprocal_rank": 1.0,
+          "latency_ms": 24.54
+        },
+        {
+          "id": "q-018",
+          "lang": "en",
+          "relevant_cases": [
+            "case-018"
+          ],
+          "retrieved": [
+            {
+              "case_id": "case-018",
+              "lang": "en",
+              "score": 0.8633
+            },
+            {
+              "case_id": "case-002",
+              "lang": "en",
+              "score": 0.859
+            },
+            {
+              "case_id": "case-009",
+              "lang": "en",
+              "score": 0.8496
+            },
+            {
+              "case_id": "case-014",
+              "lang": "en",
+              "score": 0.848
+            },
+            {
+              "case_id": "case-011",
+              "lang": "en",
+              "score": 0.8471
+            }
+          ],
+          "first_relevant_rank": 1,
+          "hits": {
+            "hit@1": 1,
+            "hit@3": 1,
+            "hit@5": 1
+          },
+          "reciprocal_rank": 1.0,
+          "latency_ms": 21.78
+        },
+        {
+          "id": "q-019",
+          "lang": "fr",
+          "relevant_cases": [
+            "case-019"
+          ],
+          "retrieved": [
+            {
+              "case_id": "case-019",
+              "lang": "fr",
+              "score": 0.8811
+            },
+            {
+              "case_id": "case-013",
+              "lang": "fr",
+              "score": 0.8525
+            },
+            {
+              "case_id": "case-005",
+              "lang": "fr",
+              "score": 0.8493
+            },
+            {
+              "case_id": "case-001",
+              "lang": "fr",
+              "score": 0.8467
+            },
+            {
+              "case_id": "case-002",
+              "lang": "fr",
+              "score": 0.8448
+            }
+          ],
+          "first_relevant_rank": 1,
+          "hits": {
+            "hit@1": 1,
+            "hit@3": 1,
+            "hit@5": 1
+          },
+          "reciprocal_rank": 1.0,
+          "latency_ms": 29.44
+        },
+        {
+          "id": "q-020",
+          "lang": "fr",
+          "relevant_cases": [
+            "case-020"
+          ],
+          "retrieved": [
+            {
+              "case_id": "case-020",
+              "lang": "fr",
+              "score": 0.8776
+            },
+            {
+              "case_id": "case-012",
+              "lang": "fr",
+              "score": 0.8685
+            },
+            {
+              "case_id": "case-014",
+              "lang": "fr",
+              "score": 0.8653
+            },
+            {
+              "case_id": "case-016",
+              "lang": "fr",
+              "score": 0.8613
+            },
+            {
+              "case_id": "case-013",
+              "lang": "fr",
+              "score": 0.8608
+            }
+          ],
+          "first_relevant_rank": 1,
+          "hits": {
+            "hit@1": 1,
+            "hit@3": 1,
+            "hit@5": 1
+          },
+          "reciprocal_rank": 1.0,
+          "latency_ms": 28.02
+        },
+        {
+          "id": "q-021",
+          "lang": "fr",
+          "relevant_cases": [
+            "case-001"
+          ],
+          "retrieved": [
+            {
+              "case_id": "case-001",
+              "lang": "fr",
+              "score": 0.885
+            },
+            {
+              "case_id": "case-017",
+              "lang": "fr",
+              "score": 0.8746
+            },
+            {
+              "case_id": "case-013",
+              "lang": "fr",
+              "score": 0.8724
+            },
+            {
+              "case_id": "case-019",
+              "lang": "fr",
+              "score": 0.8718
+            },
+            {
+              "case_id": "case-002",
+              "lang": "fr",
+              "score": 0.8684
+            }
+          ],
+          "first_relevant_rank": 1,
+          "hits": {
+            "hit@1": 1,
+            "hit@3": 1,
+            "hit@5": 1
+          },
+          "reciprocal_rank": 1.0,
+          "latency_ms": 39.62
+        },
+        {
+          "id": "q-022",
+          "lang": "en",
+          "relevant_cases": [
+            "case-004"
+          ],
+          "retrieved": [
+            {
+              "case_id": "case-002",
+              "lang": "en",
+              "score": 0.8805
+            },
+            {
+              "case_id": "case-004",
+              "lang": "en",
+              "score": 0.8796
+            },
+            {
+              "case_id": "case-018",
+              "lang": "en",
+              "score": 0.8773
+            },
+            {
+              "case_id": "case-001",
+              "lang": "en",
+              "score": 0.8721
+            },
+            {
+              "case_id": "case-007",
+              "lang": "en",
+              "score": 0.8719
+            }
+          ],
+          "first_relevant_rank": 2,
+          "hits": {
+            "hit@1": 0,
+            "hit@3": 1,
+            "hit@5": 1
+          },
+          "reciprocal_rank": 0.5,
+          "latency_ms": 26.78
+        },
+        {
+          "id": "q-023",
+          "lang": "fr",
+          "relevant_cases": [
+            "case-001",
+            "case-017"
+          ],
+          "retrieved": [
+            {
+              "case_id": "case-002",
+              "lang": "fr",
+              "score": 0.8627
+            },
+            {
+              "case_id": "case-001",
+              "lang": "fr",
+              "score": 0.8625
+            },
+            {
+              "case_id": "case-005",
+              "lang": "fr",
+              "score": 0.8587
+            },
+            {
+              "case_id": "case-017",
+              "lang": "fr",
+              "score": 0.8587
+            },
+            {
+              "case_id": "case-008",
+              "lang": "fr",
+              "score": 0.8582
+            }
+          ],
+          "first_relevant_rank": 2,
+          "hits": {
+            "hit@1": 0,
+            "hit@3": 1,
+            "hit@5": 1
+          },
+          "reciprocal_rank": 0.5,
+          "latency_ms": 21.19
+        },
+        {
+          "id": "q-024",
+          "lang": "fr",
+          "relevant_cases": [
+            "case-005",
+            "case-013"
+          ],
+          "retrieved": [
+            {
+              "case_id": "case-005",
+              "lang": "fr",
+              "score": 0.8855
+            },
+            {
+              "case_id": "case-013",
+              "lang": "fr",
+              "score": 0.8757
+            },
+            {
+              "case_id": "case-001",
+              "lang": "fr",
+              "score": 0.8566
+            },
+            {
+              "case_id": "case-020",
+              "lang": "fr",
+              "score": 0.8519
+            },
+            {
+              "case_id": "case-019",
+              "lang": "fr",
+              "score": 0.8481
+            }
+          ],
+          "first_relevant_rank": 1,
+          "hits": {
+            "hit@1": 1,
+            "hit@3": 1,
+            "hit@5": 1
+          },
+          "reciprocal_rank": 1.0,
+          "latency_ms": 23.73
+        },
+        {
+          "id": "q-025",
+          "lang": "en",
+          "relevant_cases": [
+            "case-010",
+            "case-016"
+          ],
+          "retrieved": [
+            {
+              "case_id": "case-010",
+              "lang": "en",
+              "score": 0.8748
+            },
+            {
+              "case_id": "case-016",
+              "lang": "en",
+              "score": 0.8572
+            },
+            {
+              "case_id": "case-012",
+              "lang": "en",
+              "score": 0.8519
+            },
+            {
+              "case_id": "case-015",
+              "lang": "en",
+              "score": 0.8498
+            },
+            {
+              "case_id": "case-004",
+              "lang": "en",
+              "score": 0.8472
+            }
+          ],
+          "first_relevant_rank": 1,
+          "hits": {
+            "hit@1": 1,
+            "hit@3": 1,
+            "hit@5": 1
+          },
+          "reciprocal_rank": 1.0,
+          "latency_ms": 22.06
+        }
+      ]
+    },
+    "bm25": {
+      "overall": {
+        "n_queries": 25,
+        "hit@1": 0.92,
+        "hit@3": 1.0,
+        "hit@5": 1.0,
+        "mrr": 0.96
+      },
+      "by_lang": {
+        "en": {
+          "n_queries": 7,
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "fr": {
+          "n_queries": 18,
+          "hit@1": 0.8889,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 0.9444
+        }
+      },
+      "latency_ms": {
+        "mean": 0.29,
+        "p95": 0.53
+      },
+      "per_query": [
+        {
+          "id": "q-001",
+          "lang": "fr",
+          "relevant_cases": [
+            "case-001"
+          ],
+          "retrieved": [
+            {
+              "case_id": "case-001",
+              "lang": "fr",
+              "score": 10.8562
+            },
+            {
+              "case_id": "case-018",
+              "lang": "fr",
+              "score": 10.3084
+            },
+            {
+              "case_id": "case-017",
+              "lang": "fr",
+              "score": 10.1162
+            },
+            {
+              "case_id": "case-004",
+              "lang": "fr",
+              "score": 9.4601
+            },
+            {
+              "case_id": "case-003",
+              "lang": "fr",
+              "score": 8.1015
+            }
+          ],
+          "first_relevant_rank": 1,
+          "hits": {
+            "hit@1": 1,
+            "hit@3": 1,
+            "hit@5": 1
+          },
+          "reciprocal_rank": 1.0,
+          "latency_ms": 0.66
+        },
+        {
+          "id": "q-002",
+          "lang": "fr",
+          "relevant_cases": [
+            "case-002"
+          ],
+          "retrieved": [
+            {
+              "case_id": "case-002",
+              "lang": "fr",
+              "score": 12.1869
+            },
+            {
+              "case_id": "case-004",
+              "lang": "fr",
+              "score": 11.8706
+            },
+            {
+              "case_id": "case-011",
+              "lang": "fr",
+              "score": 8.7004
+            },
+            {
+              "case_id": "case-014",
+              "lang": "fr",
+              "score": 6.6891
+            },
+            {
+              "case_id": "case-015",
+              "lang": "fr",
+              "score": 6.0937
+            }
+          ],
+          "first_relevant_rank": 1,
+          "hits": {
+            "hit@1": 1,
+            "hit@3": 1,
+            "hit@5": 1
+          },
+          "reciprocal_rank": 1.0,
+          "latency_ms": 0.36
+        },
+        {
+          "id": "q-003",
+          "lang": "fr",
+          "relevant_cases": [
+            "case-003"
+          ],
+          "retrieved": [
+            {
+              "case_id": "case-003",
+              "lang": "fr",
+              "score": 24.7295
+            },
+            {
+              "case_id": "case-005",
+              "lang": "fr",
+              "score": 10.11
+            },
+            {
+              "case_id": "case-011",
+              "lang": "fr",
+              "score": 6.7342
+            },
+            {
+              "case_id": "case-010",
+              "lang": "fr",
+              "score": 6.2844
+            },
+            {
+              "case_id": "case-018",
+              "lang": "fr",
+              "score": 5.2619
+            }
+          ],
+          "first_relevant_rank": 1,
+          "hits": {
+            "hit@1": 1,
+            "hit@3": 1,
+            "hit@5": 1
+          },
+          "reciprocal_rank": 1.0,
+          "latency_ms": 0.41
+        },
+        {
+          "id": "q-004",
+          "lang": "en",
+          "relevant_cases": [
+            "case-004"
+          ],
+          "retrieved": [
+            {
+              "case_id": "case-004",
+              "lang": "en",
+              "score": 14.2044
+            },
+            {
+              "case_id": "case-010",
+              "lang": "en",
+              "score": 12.1807
+            },
+            {
+              "case_id": "case-012",
+              "lang": "en",
+              "score": 8.977
+            },
+            {
+              "case_id": "case-020",
+              "lang": "en",
+              "score": 8.7689
+            },
+            {
+              "case_id": "case-014",
+              "lang": "en",
+              "score": 8.1913
+            }
+          ],
+          "first_relevant_rank": 1,
+          "hits": {
+            "hit@1": 1,
+            "hit@3": 1,
+            "hit@5": 1
+          },
+          "reciprocal_rank": 1.0,
+          "latency_ms": 0.53
+        },
+        {
+          "id": "q-005",
+          "lang": "fr",
+          "relevant_cases": [
+            "case-005"
+          ],
+          "retrieved": [
+            {
+              "case_id": "case-005",
+              "lang": "fr",
+              "score": 15.6814
+            },
+            {
+              "case_id": "case-001",
+              "lang": "fr",
+              "score": 8.5018
+            },
+            {
+              "case_id": "case-013",
+              "lang": "fr",
+              "score": 8.0221
+            },
+            {
+              "case_id": "case-010",
+              "lang": "fr",
+              "score": 6.9424
+            },
+            {
+              "case_id": "case-008",
+              "lang": "fr",
+              "score": 6.3774
+            }
+          ],
+          "first_relevant_rank": 1,
+          "hits": {
+            "hit@1": 1,
+            "hit@3": 1,
+            "hit@5": 1
+          },
+          "reciprocal_rank": 1.0,
+          "latency_ms": 0.32
+        },
+        {
+          "id": "q-006",
+          "lang": "en",
+          "relevant_cases": [
+            "case-006"
+          ],
+          "retrieved": [
+            {
+              "case_id": "case-006",
+              "lang": "en",
+              "score": 17.0864
+            },
+            {
+              "case_id": "case-019",
+              "lang": "en",
+              "score": 6.9807
+            },
+            {
+              "case_id": "case-005",
+              "lang": "en",
+              "score": 6.4607
+            },
+            {
+              "case_id": "case-011",
+              "lang": "en",
+              "score": 5.3273
+            },
+            {
+              "case_id": "case-003",
+              "lang": "en",
+              "score": 4.0153
+            }
+          ],
+          "first_relevant_rank": 1,
+          "hits": {
+            "hit@1": 1,
+            "hit@3": 1,
+            "hit@5": 1
+          },
+          "reciprocal_rank": 1.0,
+          "latency_ms": 0.24
+        },
+        {
+          "id": "q-007",
+          "lang": "fr",
+          "relevant_cases": [
+            "case-007"
+          ],
+          "retrieved": [
+            {
+              "case_id": "case-007",
+              "lang": "fr",
+              "score": 21.0247
+            },
+            {
+              "case_id": "case-016",
+              "lang": "fr",
+              "score": 12.2907
+            },
+            {
+              "case_id": "case-015",
+              "lang": "fr",
+              "score": 11.9138
+            },
+            {
+              "case_id": "case-017",
+              "lang": "fr",
+              "score": 9.9365
+            },
+            {
+              "case_id": "case-009",
+              "lang": "fr",
+              "score": 7.7943
+            }
+          ],
+          "first_relevant_rank": 1,
+          "hits": {
+            "hit@1": 1,
+            "hit@3": 1,
+            "hit@5": 1
+          },
+          "reciprocal_rank": 1.0,
+          "latency_ms": 0.32
+        },
+        {
+          "id": "q-008",
+          "lang": "fr",
+          "relevant_cases": [
+            "case-008"
+          ],
+          "retrieved": [
+            {
+              "case_id": "case-008",
+              "lang": "fr",
+              "score": 26.2284
+            },
+            {
+              "case_id": "case-020",
+              "lang": "fr",
+              "score": 13.2987
+            },
+            {
+              "case_id": "case-012",
+              "lang": "fr",
+              "score": 10.287
+            },
+            {
+              "case_id": "case-017",
+              "lang": "fr",
+              "score": 10.1784
+            },
+            {
+              "case_id": "case-003",
+              "lang": "fr",
+              "score": 9.6879
+            }
+          ],
+          "first_relevant_rank": 1,
+          "hits": {
+            "hit@1": 1,
+            "hit@3": 1,
+            "hit@5": 1
+          },
+          "reciprocal_rank": 1.0,
+          "latency_ms": 0.37
+        },
+        {
+          "id": "q-009",
+          "lang": "en",
+          "relevant_cases": [
+            "case-009"
+          ],
+          "retrieved": [
+            {
+              "case_id": "case-009",
+              "lang": "en",
+              "score": 23.0089
+            },
+            {
+              "case_id": "case-007",
+              "lang": "en",
+              "score": 9.7113
+            },
+            {
+              "case_id": "case-011",
+              "lang": "en",
+              "score": 8.0859
+            },
+            {
+              "case_id": "case-004",
+              "lang": "en",
+              "score": 6.4888
+            },
+            {
+              "case_id": "case-014",
+              "lang": "en",
+              "score": 5.6088
+            }
+          ],
+          "first_relevant_rank": 1,
+          "hits": {
+            "hit@1": 1,
+            "hit@3": 1,
+            "hit@5": 1
+          },
+          "reciprocal_rank": 1.0,
+          "latency_ms": 0.24
+        },
+        {
+          "id": "q-010",
+          "lang": "fr",
+          "relevant_cases": [
+            "case-010",
+            "case-016"
+          ],
+          "retrieved": [
+            {
+              "case_id": "case-016",
+              "lang": "fr",
+              "score": 21.3178
+            },
+            {
+              "case_id": "case-010",
+              "lang": "fr",
+              "score": 8.5876
+            },
+            {
+              "case_id": "case-020",
+              "lang": "fr",
+              "score": 6.6262
+            },
+            {
+              "case_id": "case-015",
+              "lang": "fr",
+              "score": 4.9249
+            },
+            {
+              "case_id": "case-005",
+              "lang": "fr",
+              "score": 2.6548
+            }
+          ],
+          "first_relevant_rank": 1,
+          "hits": {
+            "hit@1": 1,
+            "hit@3": 1,
+            "hit@5": 1
+          },
+          "reciprocal_rank": 1.0,
+          "latency_ms": 0.29
+        },
+        {
+          "id": "q-011",
+          "lang": "fr",
+          "relevant_cases": [
+            "case-011"
+          ],
+          "retrieved": [
+            {
+              "case_id": "case-011",
+              "lang": "fr",
+              "score": 14.5304
+            },
+            {
+              "case_id": "case-002",
+              "lang": "fr",
+              "score": 7.2001
+            },
+            {
+              "case_id": "case-018",
+              "lang": "fr",
+              "score": 4.749
+            },
+            {
+              "case_id": "case-009",
+              "lang": "fr",
+              "score": 4.4612
+            },
+            {
+              "case_id": "case-016",
+              "lang": "fr",
+              "score": 4.3878
+            }
+          ],
+          "first_relevant_rank": 1,
+          "hits": {
+            "hit@1": 1,
+            "hit@3": 1,
+            "hit@5": 1
+          },
+          "reciprocal_rank": 1.0,
+          "latency_ms": 0.24
+        },
+        {
+          "id": "q-012",
+          "lang": "fr",
+          "relevant_cases": [
+            "case-012"
+          ],
+          "retrieved": [
+            {
+              "case_id": "case-012",
+              "lang": "fr",
+              "score": 15.6823
+            },
+            {
+              "case_id": "case-016",
+              "lang": "fr",
+              "score": 10.2386
+            },
+            {
+              "case_id": "case-010",
+              "lang": "fr",
+              "score": 9.6387
+            },
+            {
+              "case_id": "case-015",
+              "lang": "fr",
+              "score": 7.5371
+            },
+            {
+              "case_id": "case-008",
+              "lang": "fr",
+              "score": 7.3229
+            }
+          ],
+          "first_relevant_rank": 1,
+          "hits": {
+            "hit@1": 1,
+            "hit@3": 1,
+            "hit@5": 1
+          },
+          "reciprocal_rank": 1.0,
+          "latency_ms": 0.26
+        },
+        {
+          "id": "q-013",
+          "lang": "en",
+          "relevant_cases": [
+            "case-013"
+          ],
+          "retrieved": [
+            {
+              "case_id": "case-013",
+              "lang": "en",
+              "score": 17.8329
+            },
+            {
+              "case_id": "case-008",
+              "lang": "en",
+              "score": 9.0192
+            },
+            {
+              "case_id": "case-020",
+              "lang": "en",
+              "score": 6.8972
+            },
+            {
+              "case_id": "case-016",
+              "lang": "en",
+              "score": 5.868
+            },
+            {
+              "case_id": "case-019",
+              "lang": "en",
+              "score": 5.4313
+            }
+          ],
+          "first_relevant_rank": 1,
+          "hits": {
+            "hit@1": 1,
+            "hit@3": 1,
+            "hit@5": 1
+          },
+          "reciprocal_rank": 1.0,
+          "latency_ms": 0.28
+        },
+        {
+          "id": "q-014",
+          "lang": "fr",
+          "relevant_cases": [
+            "case-014"
+          ],
+          "retrieved": [
+            {
+              "case_id": "case-014",
+              "lang": "fr",
+              "score": 19.9633
+            },
+            {
+              "case_id": "case-019",
+              "lang": "fr",
+              "score": 9.1149
+            },
+            {
+              "case_id": "case-012",
+              "lang": "fr",
+              "score": 8.0118
+            },
+            {
+              "case_id": "case-004",
+              "lang": "fr",
+              "score": 7.0559
+            },
+            {
+              "case_id": "case-011",
+              "lang": "fr",
+              "score": 5.8427
+            }
+          ],
+          "first_relevant_rank": 1,
+          "hits": {
+            "hit@1": 1,
+            "hit@3": 1,
+            "hit@5": 1
+          },
+          "reciprocal_rank": 1.0,
+          "latency_ms": 0.22
+        },
+        {
+          "id": "q-015",
+          "lang": "fr",
+          "relevant_cases": [
+            "case-015"
+          ],
+          "retrieved": [
+            {
+              "case_id": "case-015",
+              "lang": "fr",
+              "score": 20.5906
+            },
+            {
+              "case_id": "case-002",
+              "lang": "fr",
+              "score": 8.0803
+            },
+            {
+              "case_id": "case-019",
+              "lang": "fr",
+              "score": 7.1262
+            },
+            {
+              "case_id": "case-016",
+              "lang": "fr",
+              "score": 6.9714
+            },
+            {
+              "case_id": "case-018",
+              "lang": "fr",
+              "score": 5.8955
+            }
+          ],
+          "first_relevant_rank": 1,
+          "hits": {
+            "hit@1": 1,
+            "hit@3": 1,
+            "hit@5": 1
+          },
+          "reciprocal_rank": 1.0,
+          "latency_ms": 0.31
+        },
+        {
+          "id": "q-016",
+          "lang": "fr",
+          "relevant_cases": [
+            "case-016",
+            "case-010"
+          ],
+          "retrieved": [
+            {
+              "case_id": "case-016",
+              "lang": "fr",
+              "score": 20.4347
+            },
+            {
+              "case_id": "case-007",
+              "lang": "fr",
+              "score": 8.6971
+            },
+            {
+              "case_id": "case-010",
+              "lang": "fr",
+              "score": 5.7214
+            },
+            {
+              "case_id": "case-008",
+              "lang": "fr",
+              "score": 5.2006
+            },
+            {
+              "case_id": "case-020",
+              "lang": "fr",
+              "score": 5.1787
+            }
+          ],
+          "first_relevant_rank": 1,
+          "hits": {
+            "hit@1": 1,
+            "hit@3": 1,
+            "hit@5": 1
+          },
+          "reciprocal_rank": 1.0,
+          "latency_ms": 0.26
+        },
+        {
+          "id": "q-017",
+          "lang": "fr",
+          "relevant_cases": [
+            "case-017"
+          ],
+          "retrieved": [
+            {
+              "case_id": "case-017",
+              "lang": "fr",
+              "score": 34.1596
+            },
+            {
+              "case_id": "case-001",
+              "lang": "fr",
+              "score": 12.8608
+            },
+            {
+              "case_id": "case-008",
+              "lang": "fr",
+              "score": 8.6447
+            },
+            {
+              "case_id": "case-016",
+              "lang": "fr",
+              "score": 6.9396
+            },
+            {
+              "case_id": "case-007",
+              "lang": "fr",
+              "score": 5.8181
+            }
+          ],
+          "first_relevant_rank": 1,
+          "hits": {
+            "hit@1": 1,
+            "hit@3": 1,
+            "hit@5": 1
+          },
+          "reciprocal_rank": 1.0,
+          "latency_ms": 0.31
+        },
+        {
+          "id": "q-018",
+          "lang": "en",
+          "relevant_cases": [
+            "case-018"
+          ],
+          "retrieved": [
+            {
+              "case_id": "case-018",
+              "lang": "en",
+              "score": 15.4802
+            },
+            {
+              "case_id": "case-002",
+              "lang": "en",
+              "score": 11.7748
+            },
+            {
+              "case_id": "case-004",
+              "lang": "en",
+              "score": 5.6367
+            },
+            {
+              "case_id": "case-009",
+              "lang": "en",
+              "score": 5.2857
+            },
+            {
+              "case_id": "case-020",
+              "lang": "en",
+              "score": 5.2743
+            }
+          ],
+          "first_relevant_rank": 1,
+          "hits": {
+            "hit@1": 1,
+            "hit@3": 1,
+            "hit@5": 1
+          },
+          "reciprocal_rank": 1.0,
+          "latency_ms": 0.24
+        },
+        {
+          "id": "q-019",
+          "lang": "fr",
+          "relevant_cases": [
+            "case-019"
+          ],
+          "retrieved": [
+            {
+              "case_id": "case-019",
+              "lang": "fr",
+              "score": 27.2777
+            },
+            {
+              "case_id": "case-006",
+              "lang": "fr",
+              "score": 10.0577
+            },
+            {
+              "case_id": "case-015",
+              "lang": "fr",
+              "score": 9.3901
+            },
+            {
+              "case_id": "case-017",
+              "lang": "fr",
+              "score": 7.9614
+            },
+            {
+              "case_id": "case-014",
+              "lang": "fr",
+              "score": 7.0922
+            }
+          ],
+          "first_relevant_rank": 1,
+          "hits": {
+            "hit@1": 1,
+            "hit@3": 1,
+            "hit@5": 1
+          },
+          "reciprocal_rank": 1.0,
+          "latency_ms": 0.27
+        },
+        {
+          "id": "q-020",
+          "lang": "fr",
+          "relevant_cases": [
+            "case-020"
+          ],
+          "retrieved": [
+            {
+              "case_id": "case-020",
+              "lang": "fr",
+              "score": 23.8754
+            },
+            {
+              "case_id": "case-008",
+              "lang": "fr",
+              "score": 10.8044
+            },
+            {
+              "case_id": "case-004",
+              "lang": "fr",
+              "score": 8.3355
+            },
+            {
+              "case_id": "case-012",
+              "lang": "fr",
+              "score": 6.9714
+            },
+            {
+              "case_id": "case-010",
+              "lang": "fr",
+              "score": 6.0283
+            }
+          ],
+          "first_relevant_rank": 1,
+          "hits": {
+            "hit@1": 1,
+            "hit@3": 1,
+            "hit@5": 1
+          },
+          "reciprocal_rank": 1.0,
+          "latency_ms": 0.27
+        },
+        {
+          "id": "q-021",
+          "lang": "fr",
+          "relevant_cases": [
+            "case-001"
+          ],
+          "retrieved": [
+            {
+              "case_id": "case-011",
+              "lang": "fr",
+              "score": 5.5253
+            },
+            {
+              "case_id": "case-001",
+              "lang": "fr",
+              "score": 4.9627
+            },
+            {
+              "case_id": "case-003",
+              "lang": "fr",
+              "score": 4.8387
+            },
+            {
+              "case_id": "case-009",
+              "lang": "fr",
+              "score": 3.5121
+            },
+            {
+              "case_id": "case-016",
+              "lang": "fr",
+              "score": 3.5083
+            }
+          ],
+          "first_relevant_rank": 2,
+          "hits": {
+            "hit@1": 0,
+            "hit@3": 1,
+            "hit@5": 1
+          },
+          "reciprocal_rank": 0.5,
+          "latency_ms": 0.16
+        },
+        {
+          "id": "q-022",
+          "lang": "en",
+          "relevant_cases": [
+            "case-004"
+          ],
+          "retrieved": [
+            {
+              "case_id": "case-004",
+              "lang": "en",
+              "score": 5.6873
+            },
+            {
+              "case_id": "case-009",
+              "lang": "en",
+              "score": 5.3332
+            },
+            {
+              "case_id": "case-002",
+              "lang": "en",
+              "score": 2.5567
+            },
+            {
+              "case_id": "case-015",
+              "lang": "fr",
+              "score": 1.3805
+            },
+            {
+              "case_id": "case-011",
+              "lang": "fr",
+              "score": 1.3426
+            }
+          ],
+          "first_relevant_rank": 1,
+          "hits": {
+            "hit@1": 1,
+            "hit@3": 1,
+            "hit@5": 1
+          },
+          "reciprocal_rank": 1.0,
+          "latency_ms": 0.17
+        },
+        {
+          "id": "q-023",
+          "lang": "fr",
+          "relevant_cases": [
+            "case-001",
+            "case-017"
+          ],
+          "retrieved": [
+            {
+              "case_id": "case-008",
+              "lang": "fr",
+              "score": 8.2014
+            },
+            {
+              "case_id": "case-001",
+              "lang": "fr",
+              "score": 7.8454
+            },
+            {
+              "case_id": "case-011",
+              "lang": "fr",
+              "score": 7.417
+            },
+            {
+              "case_id": "case-003",
+              "lang": "fr",
+              "score": 6.4154
+            },
+            {
+              "case_id": "case-018",
+              "lang": "fr",
+              "score": 6.3038
+            }
+          ],
+          "first_relevant_rank": 2,
+          "hits": {
+            "hit@1": 0,
+            "hit@3": 1,
+            "hit@5": 1
+          },
+          "reciprocal_rank": 0.5,
+          "latency_ms": 0.21
+        },
+        {
+          "id": "q-024",
+          "lang": "fr",
+          "relevant_cases": [
+            "case-005",
+            "case-013"
+          ],
+          "retrieved": [
+            {
+              "case_id": "case-005",
+              "lang": "fr",
+              "score": 5.9357
+            },
+            {
+              "case_id": "case-012",
+              "lang": "fr",
+              "score": 4.6221
+            },
+            {
+              "case_id": "case-013",
+              "lang": "fr",
+              "score": 3.7513
+            },
+            {
+              "case_id": "case-015",
+              "lang": "fr",
+              "score": 2.7017
+            },
+            {
+              "case_id": "case-020",
+              "lang": "en",
+              "score": 2.3319
+            }
+          ],
+          "first_relevant_rank": 1,
+          "hits": {
+            "hit@1": 1,
+            "hit@3": 1,
+            "hit@5": 1
+          },
+          "reciprocal_rank": 1.0,
+          "latency_ms": 0.18
+        },
+        {
+          "id": "q-025",
+          "lang": "en",
+          "relevant_cases": [
+            "case-010",
+            "case-016"
+          ],
+          "retrieved": [
+            {
+              "case_id": "case-010",
+              "lang": "en",
+              "score": 21.3861
+            },
+            {
+              "case_id": "case-016",
+              "lang": "en",
+              "score": 11.5345
+            },
+            {
+              "case_id": "case-012",
+              "lang": "en",
+              "score": 8.6566
+            },
+            {
+              "case_id": "case-004",
+              "lang": "en",
+              "score": 7.5897
+            },
+            {
+              "case_id": "case-014",
+              "lang": "en",
+              "score": 7.394
+            }
+          ],
+          "first_relevant_rank": 1,
+          "hits": {
+            "hit@1": 1,
+            "hit@3": 1,
+            "hit@5": 1
+          },
+          "reciprocal_rank": 1.0,
+          "latency_ms": 0.22
+        }
+      ]
+    }
+  }
+}
