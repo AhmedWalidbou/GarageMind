@@ -1,24 +1,23 @@
 """
 Retrieval benchmark - GarageMind M3 EBR-RAG
-Runs the 25-query evaluation set through two retrievers - dense
-(e5-small + Qdrant) and lexical (BM25) - with a single shared harness,
-and reports Hit@k, MRR, per-language breakdown, latency and per-query
-divergences.
+Runs the 25-query evaluation set through three retrievers - dense
+(e5-small + Qdrant), lexical (BM25) and hybrid (RRF fusion) - with a
+single shared harness, and reports Hit@k, MRR, per-language breakdown,
+latency and per-query divergences.
 
 Design decisions:
-    - One harness, two retrievers: both systems expose
+    - One harness, N retrievers: every system exposes
       retrieve(query, top_k) -> list[RetrievedCase], so the exact same
-      evaluation code path scores both. Protocol divergence is
+      evaluation code path scores them all. Protocol divergence is
       impossible by construction.
     - Hit@k ("success at k"): a query is solved at k if at least one
       acceptable case id appears in the top-k unique cases (the query
       set defines relevant_cases as "every acceptable case id").
     - MRR uses the rank of the first relevant case.
-    - Raw scores are never compared across systems (cosine and BM25
-      live on different scales): only ranks and rank-based metrics.
-    - The divergence report (queries solved at rank 1 by exactly one
-      system) is the benchmark's most informative output: it shows
-      where semantics beat lexical matching and vice versa.
+    - Raw scores are never compared across systems (cosine, BM25 and
+      RRF live on different scales): only ranks and rank-based metrics.
+    - The divergence report (queries solved at rank 1 by some systems
+      and not others) is the benchmark's most informative output.
     - Fail fast on a missing or wrong-cardinality index: metrics
       computed on a stale index are worse than no metrics.
 """
@@ -30,6 +29,7 @@ from pathlib import Path
 from src.ebr.corpus import load_documents
 from src.ebr.embedder import Embedder
 from src.ebr.lexical import LexicalRetriever
+from src.ebr.hybrid import HybridRetriever
 from src.ebr.retriever import Retriever
 from src.ebr.vectorstore import VectorStore
 
@@ -125,19 +125,18 @@ def print_table(all_rows: dict) -> None:
 
 
 def print_divergences(queries: list[dict], all_rows: dict) -> None:
-    print("\nqueries solved at rank 1 by exactly one system:")
+    print("\nqueries with different hit@1 across systems:")
     names = list(all_rows.keys())
     found = False
     for i, q in enumerate(queries):
         hits = {n: all_rows[n][i]["hits"]["hit@1"] for n in names}
         if len(set(hits.values())) > 1:
             found = True
-            winner = max(hits, key=hits.get)
             ranks = ", ".join(
                 f"{n} rank {all_rows[n][i]['first_relevant_rank']}"
                 for n in names
             )
-            print(f"  {q['id']} [{q['lang']}] -> {winner} wins ({ranks})")
+            print(f"  {q['id']} [{q['lang']}] -> {ranks}")
     if not found:
         print("  none - identical hit@1 behavior")
 
@@ -180,9 +179,12 @@ def main() -> None:
         )
 
     embedder = Embedder()
+    dense = Retriever(embedder, store)
+    lexical = LexicalRetriever(documents)
     systems = {
-        "dense": Retriever(embedder, store),
-        "bm25": LexicalRetriever(documents),
+        "dense": dense,
+        "bm25": lexical,
+        "hybrid": HybridRetriever(dense, lexical),
     }
 
     print("Warming up the dense model ...")
@@ -203,6 +205,8 @@ def main() -> None:
             "dense_model": embedder.model_name,
             "lexical": "BM25Okapi (rank-bm25), lowercase + NFKD accent "
                        "stripping + alphanumeric tokens",
+            "hybrid": "RRF fusion of dense and bm25 rankings, k=60 "
+                      "(untuned), over-fetch top_k*2+4",
             "top_k": TOP_K,
             "k_levels": list(K_LEVELS),
             "index_points": count,
