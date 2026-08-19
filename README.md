@@ -4,7 +4,7 @@ AI-powered vehicle diagnostic copilot: from raw CAN bus frames to an explainable
 
 GarageMind reads a vehicle's low-level data (CAN bus, OBD-II, UDS), decodes it into named physical signals, reads stored fault codes together with the conditions under which they occurred, and produces a prioritized diagnostic report. The end goal is an agentic assistant that reasons about faults the way an experienced mechanic does, cross-referencing live signals, fault codes and repair knowledge.
 
-Status: Module 1 (Scan Engine) is complete and tested. Module 2 (Anomaly Benchmark Lab) has a full two-model benchmark on the four HCRL attack types, with stealthier datasets and sequence models planned as extensions. Modules 3 to 5 are in progress; see the roadmap.
+Status: Module 1 (Scan Engine) is complete and tested. Module 2 (Anomaly Benchmark Lab) has a full two-model benchmark on the four HCRL attack types, with stealthier datasets and sequence models planned as extensions. Module 3 (EBR-RAG) benchmarks three retrieval systems over a curated bilingual repair-case base. Modules 4 and 5 are in progress; see the roadmap.
 
 ## Motivation
 
@@ -20,7 +20,7 @@ A trouble code on its own is not a diagnosis. The same code can have different r
 |--------|------|--------|-------|
 | M1 | Scan Engine | Complete | CAN/DBC decoding, UDS diagnostics, unified diagnostic report |
 | M2 | Anomaly Benchmark Lab | Benchmarked (2 models) | LSTM autoencoder vs classical baseline on the 4 HCRL attacks; sequence models on stealthier data planned |
-| M3 | EBR-RAG | Planned | Retrieval over DTC definitions, repair manuals and solved cases |
+| M3 | EBR-RAG | Benchmarked (3 systems) | Retrieval over curated repair cases; dense, BM25 and hybrid RRF compared |
 | M4 | Diagnostic Agent | Planned | LangGraph agent that asks clarifying questions and reasons over evidence |
 | M5 | Interface and Edge | Planned | Dashboard and a quantized edge SLM for on-device inference |
 
@@ -52,15 +52,14 @@ Report generator. Unifies every component into a single report containing vehicl
 
 The report links each fault to the conditions under which it was recorded and checks those conditions against the live data actually observed in the log:
 
-```
 [P0301] Cylinder 1 misfire
-  Context: at idle, engine warm, vehicle stationary
-  RPM = 617 vs observed live range [596, 662], z = 0.01  -> consistent with the log
+Context: at idle, engine warm, vehicle stationary
+RPM = 617 vs observed live range [596, 662], z = 0.01 -> consistent with the log
 
 [P2002] Diesel particulate filter efficiency below threshold
-  Context: high load, engine warm, moving at 70 km/h
-  RPM = 2400 vs observed live range [596, 662]  -> conditions absent from this log
-```
+Context: high load, engine warm, moving at 70 km/h
+RPM = 2400 vs observed live range [596, 662] -> conditions absent from this log
+
 
 The correlation layer is deliberately conservative: it only computes a z-score when the signal actually varies, and reports a constant-signal note otherwise, rather than emitting a meaningless statistic.
 
@@ -112,6 +111,55 @@ python -m src.anomaly.train_lstm_ae
 
 # Full multi-model benchmark on all four attacks
 python -m src.anomaly.evaluate_attacks
+```
+
+## Module 3: Experience-Based Reasoning (EBR-RAG)
+
+Retrieves relevant repair cases from a curated bilingual knowledge base, so the diagnostic agent (Module 4) reasons over documented cases rather than over model priors alone. Three retrieval systems are benchmarked against each other under one shared harness.
+
+### Protocol
+
+- The knowledge base holds 20 curated repair cases (14 vehicle systems: DPF, EGR, PureTech timing, turbo, AL4 gearbox, MAF, glow plugs, injectors, CAN network faults). Each case is validated at load time: malformed DTC codes, missing fields or duplicate ids are rejected rather than silently indexed.
+- Each case is flattened into two monolingual documents (fr, en), 40 in total. Mixed-language documents pull embeddings toward the middle of both languages; monolingual ones do not.
+- The evaluation set holds 25 queries phrased as a mechanic or a customer would ask them, deliberately not reusing corpus wording, so metrics measure retrieval rather than string overlap. Five queries accept several cases, two are generic DTC questions.
+- Hit@k counts a query as solved at k if at least one acceptable case id appears in the top-k unique cases; MRR uses the rank of the first relevant case. Results are deduplicated by case id, keeping the best-scoring language variant.
+- One harness scores all three systems: they expose the same `retrieve(query, top_k)` interface, so protocol divergence between them is impossible by construction.
+- Raw scores are never compared across systems. Cosine similarities, BM25 scores and RRF sums live on different scales; only ranks and rank-based metrics are compared.
+
+### Systems
+
+Dense retrieval. `intfloat/multilingual-e5-small` (384 dimensions) over an embedded Qdrant index, cosine distance on L2-normalized vectors. The e5 asymmetric prefixes (`query:` / `passage:`) are applied in a single place in the code, since forgetting them silently degrades retrieval. Search runs across all 40 documents with no language filter: the multilingual space maps FR and EN to the same region, verified empirically before the design was adopted.
+
+BM25 baseline. `BM25Okapi` over the same 40 documents, tokenized with lowercasing, NFKD accent stripping and alphanumeric runs, so DTC codes survive as whole tokens. Following the Module 2 principle, the neural system is only worth its cost if it beats a classical one. BM25 has no cross-lingual ability by construction: a French query only matches French tokens plus language-independent anchors.
+
+Hybrid RRF. Reciprocal Rank Fusion of both rankings, `1/(60 + rank)` summed per case. The constant is the standard value from the literature and is deliberately left untuned: tuning it on the 25-query set would turn the evaluation into training data. Fusion was implemented only after complementarity was measured, not assumed.
+
+### Results (25 queries, top_k=5, index of 40 documents)
+
+| System | Hit@1 | Hit@3 | Hit@5 | MRR | Latency mean/p95 (ms) |
+|--------|-------|-------|-------|-----|------------------------|
+| dense (e5-small) | 0.88 | 0.96 | 1.00 | 0.9280 | 24 / 28 |
+| bm25 | 0.92 | 1.00 | 1.00 | 0.9600 | < 1 / < 1 |
+| hybrid (RRF) | 1.00 | 1.00 | 1.00 | 1.0000 | 23 / 30 |
+
+Per-language slices are symmetric for the hybrid system (1.00 on both the 18 French and the 7 English queries). Full protocol, per-query rankings and latencies are versioned in `results/retrieval_benchmark.json`.
+
+### Findings
+
+BM25 beats the dense retriever on this corpus, which contradicts the prediction registered before the run. The mechanism: workshop vocabulary is narrow (mechanics and cases share a few hundred terms), case texts are long enough to offer many matching opportunities, and DTC codes act as near-unique lexical anchors. Paraphrasing alone does not defeat lexical matching on this terrain. The dense retriever's two closest failures were a pure DTC question and a photo-finish separated by less than 0.001 in cosine similarity, both symptoms of the same cause: e5 similarities are heavily compressed on this corpus, so only ranks are meaningful, never absolute scores.
+
+The fusion result is stronger than a simple union of successes. Three queries were solved at rank 1 by exactly one system, and the hybrid captured all three; but query q-023 was solved at rank 1 by neither system, and the hybrid solves it. Consensus across two independent rankings outranks a single confident vote: a case placed second by both systems scores 2/62, above a case placed first by one system only at 1/61. Fusion produces a result neither component produced, at the cost of fifteen lines of code and no measurable latency, since the dense embedding dominates and BM25 is free.
+
+The perfect score is a limitation, not an achievement. Hit@1 of 1.00 on 25 queries means the evaluation set has reached its resolution limit: no further improvement to the retriever could be measured with it. Any next step on this module therefore starts by widening the corpus and the query set, not by tuning the retrievers. Three follow-ups are deliberately deferred until then: metadata filtering by brand and vehicle system, calibration of a "no relevant case" threshold (which the compressed cosine range currently makes unreliable), and an ablation on a larger embedding model.
+
+### Reproducing
+
+```bash
+# Build the persistent Qdrant index from the knowledge base
+python scripts/build_index.py
+
+# Benchmark dense, BM25 and hybrid retrieval on the 25 evaluation queries
+python scripts/evaluate_retrieval.py
 ```
 
 ## Installation
@@ -167,11 +215,11 @@ These figures come from a generic DBC applied to a different vehicle variant tha
 pytest -v
 ```
 
-The suite contains 100 unit tests covering DTC encoding and interpretation, the ISO-TP transport layer including sequence-error detection, the UDS ECU simulator and client, the report generator including the zero-variance correlation edge case, the command-line interface including exit codes and input validation, the anomaly preprocessing pipeline (temporal-split leakage guards, window labeling at the threshold boundary), the LSTM autoencoder (architecture, training, bilateral calibration, end-to-end detection of both irregular and flood-like synthetic attacks) and the Isolation Forest baseline (aggregation verified value by value, determinism under a fixed seed).
+The suite contains 184 unit tests covering DTC encoding and interpretation, the ISO-TP transport layer including sequence-error detection, the UDS ECU simulator and client, the report generator including the zero-variance correlation edge case, the command-line interface including exit codes and input validation, the anomaly preprocessing pipeline (temporal-split leakage guards, window labeling at the threshold boundary), the LSTM autoencoder (architecture, training, bilateral calibration, end-to-end detection of both irregular and flood-like synthetic attacks), the Isolation Forest baseline (aggregation verified value by value, determinism under a fixed seed), and the retrieval stack (knowledge-base validation at the boundary, e5 prefix handling with a fake model, idempotent Qdrant re-indexing, case-level deduplication, BM25 tokenization including accent stripping and DTC-code preservation, and RRF fusion arithmetic verified by hand).
 
 ## Technology and standards
 
-Python 3.11, cantools, pandas, numpy, pyarrow, matplotlib, torch (CPU), scikit-learn, pytest.
+Python 3.11, cantools, pandas, numpy, pyarrow, matplotlib, torch (CPU), scikit-learn, sentence-transformers, qdrant-client, rank-bm25, pytest.
 
 Standards implemented: ISO 11898 (CAN), ISO 15765-2 (ISO-TP), ISO 14229 (UDS), and OBD-II diagnostic trouble codes.
 
@@ -179,9 +227,9 @@ Standards implemented: ISO 11898 (CAN), ISO 15765-2 (ISO-TP), ISO 14229 (UDS), a
 
 Module 2 extensions: evaluate the same benchmark protocol on the ROAD dataset (ORNL), whose flam-delivery and masquerade attacks are the stealthiest publicly available, then introduce sequence models (Transformer-based detectors) that have to beat the classical baseline there to earn their place.
 
-Module 3 will add retrieval-augmented generation over repair manuals, DTC definitions and solved repair cases, in the spirit of experience-based repair systems used in professional workshops.
+Module 3 extensions: widen the knowledge base and the evaluation set, since a perfect Hit@1 on 25 queries means the current set can no longer measure progress. Metadata filtering by brand and system, a calibrated "no relevant case" threshold and a larger-embedding ablation are deferred until then.
 
-Module 4 will introduce a LangGraph diagnostic agent that actively requests missing information and reasons jointly over live signals, fault codes and retrieved documentation.
+Module 4 will introduce a LangGraph diagnostic agent that actively requests missing information and reasons jointly over live signals, fault codes and retrieved documentation, using the retrieval stack of Module 3 as a tool.
 
 Module 5 will provide an interactive dashboard and a quantized small language model for on-device, offline inference.
 
