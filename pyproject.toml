@@ -35,6 +35,9 @@ dependencies = [
     "sentence-transformers>=5.7",
     "qdrant-client>=1.19",
     "rank-bm25>=0.2",
+    "langgraph>=1.2",
+    "mistralai>=2.9",
+    "python-dotenv>=1.0",
 ]
 
 [project.optional-dependencies]
