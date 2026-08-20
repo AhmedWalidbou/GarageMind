@@ -1,0 +1,613 @@
+{
+  "summary": {
+    "scenarios_run": 15,
+    "scenarios_scored": 15,
+    "degraded_runs": 0,
+    "degraded_ids": [],
+    "tool_exact_match": 0.9333,
+    "tool_coverage": 0.9333,
+    "citation_grounding": 1.0,
+    "hallucinated_citations": 0,
+    "expected_case_recall": 1.0,
+    "keyword_coverage": 0.7143,
+    "traps": 3,
+    "traps_declined": 3,
+    "traps_declined_rate": 1.0,
+    "traps_declined_lexically": 2,
+    "traps_lexical_only": 0,
+    "traps_structural_only": 1,
+    "normal_scenarios": 12,
+    "hit_turn_limit": 0,
+    "repeated_calls": 0,
+    "mean_turns": 2.07,
+    "cold_start_ms": 20302.5,
+    "mean_latency_ms_warm": 4370.8,
+    "median_latency_ms_warm": 3322.1,
+    "max_latency_ms_warm": 21108.5,
+    "model": "mistral-small-latest",
+    "max_turns": 5,
+    "total_seconds": 82.3
+  },
+  "scenarios": [
+    {
+      "id": "s-001",
+      "type": "simple",
+      "input": "Ma 308 1.6 HDi perd de la puissance progressivement, le voyant moteur est allume et elle regenere tout le temps. Je ne fais que de la ville.",
+      "answer": "D'après les cas documentés, le scénario le plus probable pour votre **Peugeot 308 1.6 HDi** avec **perte de puissance progressive**, **voyant moteur allumé** et **régénérations FAP fréquentes** (surtout en usage urbain) est un **FAP (Filtre à Particules) colmaté** (case-001).\n\n**Cause principale** :\n- Accumulation de suies dans le FAP due à des trajets courts (régénération passive insuffisante).\n- Possible épuisement de l'additif **Eolys** (nécessaire pour les moteurs 1.6 HDi BlueHDi).\n\n**Prochaines étapes** :\n1. **Lire les codes défauts** avec un outil diagnostic pour confirmer (ex. **P2002** = efficacité FAP trop faible).\n2. **Vérifier la contre-pression** à l’échappement (si > 400 mbar, le FAP est très colmaté).\n3. **Effectuer une régénération forcée** via outil diagnostic.\n4. **Recharger l’additif Eolys** si nécessaire.\n5. **Si le problème persiste** : nettoyage ou remplacement du FAP.\n\n**Conseil** : Prévoir un trajet autoroutier (30 min à régime soutenu) toutes les 2 semaines pour éviter le colmatage.\n\n*(Si les codes défauts ne correspondent pas à P2002, précisez-les pour affiner le diagnostic.)*",
+      "turns": 2,
+      "latency_ms": 20302.5,
+      "stop_reason": "answered",
+      "tools_used": [
+        "search_repair_cases"
+      ],
+      "tools_expected": [
+        "search_repair_cases"
+      ],
+      "tools_exact": true,
+      "tools_covered": true,
+      "extra_tools": [],
+      "cases_grounded": [
+        "case-001",
+        "case-003",
+        "case-005"
+      ],
+      "cases_claimed": [
+        "case-001"
+      ],
+      "cases_hallucinated": [],
+      "cases_expected_found": [
+        "case-001"
+      ],
+      "cases_expected_missed": [],
+      "keywords_expected": [
+        "fap",
+        "particules"
+      ],
+      "keywords_hit": [
+        "fap",
+        "particules"
+      ],
+      "must_decline": false,
+      "declined_lexically": false,
+      "declined_structurally": false,
+      "decline_ok": null,
+      "degraded": false
+    },
+    {
+      "id": "s-002",
+      "type": "composite",
+      "input": "J'ai le code P0301 sur une Golf 1.4 essence. Qu'est-ce que ca veut dire et qu'est-ce que je dois verifier ?",
+      "answer": "**P0301** signifie **ratés d'allumage détectés sur le cylindre 1** (structure du code confirmée).\n\n### Cause probable (basé sur les cas documentés pour une Golf 1.4 essence) :\n- **Bobine d'allumage crayon du cylindre 1 défaillante à chaud** (claquage interne).\n- **Bougie usée** (écartement incorrect) aggravant le problème.\n\n### Vérifications à effectuer :\n1. **Inspecter la bobine du cylindre 1** :\n   - Vérifier son état physique (fissures, brûlures).\n   - Tester son fonctionnement (remplacement par une connue bonne si disponible).\n2. **Vérifier la bougie du cylindre 1** :\n   - Contrôler l’écartement et l’état (noircissement, électrodes usées).\n   - Remplacer si nécessaire (jeu complet recommandé).\n3. **Vérifier les autres cylindres** :\n   - Contrôler les bobines et bougies des autres cylindres pour écarter un problème systémique.\n\n*Source : (case-004)*",
+      "turns": 3,
+      "latency_ms": 3476.0,
+      "stop_reason": "answered",
+      "tools_used": [
+        "decode_dtc",
+        "search_repair_cases"
+      ],
+      "tools_expected": [
+        "decode_dtc",
+        "search_repair_cases"
+      ],
+      "tools_exact": true,
+      "tools_covered": true,
+      "extra_tools": [],
+      "cases_grounded": [
+        "case-002",
+        "case-004",
+        "case-020"
+      ],
+      "cases_claimed": [
+        "case-004"
+      ],
+      "cases_hallucinated": [],
+      "cases_expected_found": [
+        "case-004"
+      ],
+      "cases_expected_missed": [],
+      "keywords_expected": [
+        "rate",
+        "allumage",
+        "cylindre"
+      ],
+      "keywords_hit": [
+        "allumage",
+        "cylindre"
+      ],
+      "must_decline": false,
+      "declined_lexically": false,
+      "declined_structurally": false,
+      "decline_ok": null,
+      "degraded": false
+    },
+    {
+      "id": "s-003",
+      "type": "composite",
+      "input": "Code P0299 sur un 1.6 HDi, ca siffle et je n'ai plus de puissance en montee, coupure au-dessus de 3000 tours.",
+      "answer": "**Diagnostic probable :**\nTurbo grippé côté géométrie variable (cokéfaction d'huile) — (case-005).\n\n**Ce qui l'indique :**\n- Code **P0299** (sous-pression turbo, mode dégradé au-dessus de 3000 tr/min).\n- **Sifflement anormal** + **perte de puissance en montée** + **coupures au-dessus de 3000 tr/min** sur un 1.6 HDi (DV6).\n\n**Prochaines vérifications :**\n1. Contrôler visuellement l'état des **conduites d'huile** vers le turbo (obstruction possible).\n2. Tester la **mobilité de la wastegate/géométrie variable** (blocage probable).\n3. Vérifier la **contre-pression d'échappement** (risque de FAP colmaté en cascade).\n\n**Réparation associée :**\nRemplacement du turbo + kit de conduites d'huile neuves (obligatoire) — (case-005).",
+      "turns": 2,
+      "latency_ms": 2868.6,
+      "stop_reason": "answered",
+      "tools_used": [
+        "search_repair_cases"
+      ],
+      "tools_expected": [
+        "decode_dtc",
+        "search_repair_cases"
+      ],
+      "tools_exact": false,
+      "tools_covered": false,
+      "extra_tools": [],
+      "cases_grounded": [
+        "case-001",
+        "case-005",
+        "case-011"
+      ],
+      "cases_claimed": [
+        "case-005"
+      ],
+      "cases_hallucinated": [],
+      "cases_expected_found": [
+        "case-005"
+      ],
+      "cases_expected_missed": [],
+      "keywords_expected": [
+        "turbo"
+      ],
+      "keywords_hit": [
+        "turbo"
+      ],
+      "must_decline": false,
+      "declined_lexically": false,
+      "declined_structurally": false,
+      "decline_ok": null,
+      "degraded": false
+    },
+    {
+      "id": "s-004",
+      "type": "simple",
+      "input": "Clio dCi 180000 km, elle broute a l'acceleration et fume noir, ralenti qui tremble, mode degrade de temps en temps.",
+      "answer": "**Diagnostic probable :**\n**Vanne EGR encrassée** (case-002) sur ce 1.5 dCi (K9K) à 180 000 km.\n\n**Base :**\n- Broutage à l'accélération, fumée noire, ralenti tremblotant et mode dégradé intermittent sont typiques d'une recirculation excessive des gaz d'échappement due à une vanne EGR bloquée partiellement ouverte.\n- Le kilométrage élevé et l'usage urbain favorisent l'encrassement par calamine.\n\n**Prochaine étape :**\n1. **Lire les codes défauts** (P0401/P0402 attendus).\n2. **Contrôler la vanne EGR** : dépose et nettoyage complet (ou remplacement si le moteur pas-à-pas est défectueux).\n3. **Effacer les codes** et effectuer un apprentissage de la butée après intervention.\n\nSi les symptômes persistent après nettoyage, vérifier le débitmètre d'air (case-011) ou les fuites d'air (case-014), mais l'EGR est le premier suspect.",
+      "turns": 2,
+      "latency_ms": 3168.1,
+      "stop_reason": "answered",
+      "tools_used": [
+        "search_repair_cases"
+      ],
+      "tools_expected": [
+        "search_repair_cases"
+      ],
+      "tools_exact": true,
+      "tools_covered": true,
+      "extra_tools": [],
+      "cases_grounded": [
+        "case-002",
+        "case-011",
+        "case-014"
+      ],
+      "cases_claimed": [
+        "case-002",
+        "case-011",
+        "case-014"
+      ],
+      "cases_hallucinated": [],
+      "cases_expected_found": [
+        "case-002"
+      ],
+      "cases_expected_missed": [],
+      "keywords_expected": [
+        "injecteur"
+      ],
+      "keywords_hit": [],
+      "must_decline": false,
+      "declined_lexically": false,
+      "declined_structurally": false,
+      "decline_ok": null,
+      "degraded": false
+    },
+    {
+      "id": "s-005",
+      "type": "simple",
+      "input": "208 PureTech, bruit bizarre a froid cote distribution, perte de puissance, temoin d'huile qui clignote parfois.",
+      "answer": "D'après les cas documentés, le **bruit à froid côté distribution**, la **perte de puissance** et le **témoin d'huile clignotant** sur une **Peugeot 208 1.2 PureTech (EB2)** correspondent très probablement à un **délitement de la courroie de distribution humide** (case-003).\n\n**Cause probable** :\nLes débris de la courroie obstruent la crépine de la pompe à huile, faussant le calage vilebrequin/arbre à cames et provoquant une baisse de pression d'huile intermittente.\n\n**Vérifications à faire immédiatement** :\n1. **Contrôler la pression d'huile** à froid (valeur attendue : ~1 bar au ralenti, ~3-4 bars à 2000 tr/min).\n2. **Inspecter visuellement** la courroie de distribution (fissures, résidus noirs dans le carter) **sans démonter** (risque de désynchronisation).\n3. **Vérifier le niveau et la qualité de l'huile** (contamination par particules de courroie).\n\n**Prochaine étape** :\nSi la pression est anormalement basse ou que des résidus sont visibles, prévoir un **remplacement de la courroie de distribution humide + crépine de pompe à huile** (défaillance connue sur ces moteurs avant les révisions constructeur).\n\n*Besoin d’aide pour interpréter une mesure de pression ou un code défaut précis ?*",
+      "turns": 2,
+      "latency_ms": 3491.2,
+      "stop_reason": "answered",
+      "tools_used": [
+        "search_repair_cases"
+      ],
+      "tools_expected": [
+        "search_repair_cases"
+      ],
+      "tools_exact": true,
+      "tools_covered": true,
+      "extra_tools": [],
+      "cases_grounded": [
+        "case-003",
+        "case-011",
+        "case-012"
+      ],
+      "cases_claimed": [
+        "case-003"
+      ],
+      "cases_hallucinated": [],
+      "cases_expected_found": [
+        "case-003"
+      ],
+      "cases_expected_missed": [],
+      "keywords_expected": [
+        "distribution",
+        "courroie"
+      ],
+      "keywords_hit": [
+        "distribution",
+        "courroie"
+      ],
+      "must_decline": false,
+      "declined_lexically": false,
+      "declined_structurally": false,
+      "decline_ok": null,
+      "degraded": false
+    },
+    {
+      "id": "s-006",
+      "type": "composite",
+      "input": "Peux-tu identifier ce vehicule VIN WAUZZZ8V1JA123456 et me dire ce que signifie le code P2002 qui est stocke dessus ?",
+      "answer": "Le VIN **WAUZZZ8V1JA123456** correspond à un **Audi (Allemagne), modèle année 2018**.\n\nLe code **P2002** n'est pas défini dans ma base de données locale. Je ne peux pas en préciser la signification exacte.\nVérifiez si ce code est lié à un **système de post-traitement des émissions** (filtre à particules, vanne EGR, etc.) ou consultez la documentation constructeur pour une interprétation précise.\n\nBesoin d'aide pour une autre étape de diagnostic ?",
+      "turns": 3,
+      "latency_ms": 2420.2,
+      "stop_reason": "answered",
+      "tools_used": [
+        "decode_vin",
+        "decode_dtc"
+      ],
+      "tools_expected": [
+        "decode_dtc",
+        "decode_vin"
+      ],
+      "tools_exact": true,
+      "tools_covered": true,
+      "extra_tools": [],
+      "cases_grounded": [],
+      "cases_claimed": [],
+      "cases_hallucinated": [],
+      "cases_expected_found": [],
+      "cases_expected_missed": [],
+      "keywords_expected": [
+        "audi",
+        "filtre"
+      ],
+      "keywords_hit": [
+        "audi",
+        "filtre"
+      ],
+      "must_decline": false,
+      "declined_lexically": false,
+      "declined_structurally": false,
+      "decline_ok": null,
+      "degraded": false
+    },
+    {
+      "id": "s-007",
+      "type": "composite",
+      "input": "Focus 1.6 diesel impossible a demarrer a chaud, ca sent le gazole sous le capot. Le code stocke est P0087. Diagnostic complet stp.",
+      "answer": "**Diagnostic pour Ford Focus 1.6 diesel (odeur de gazole + P0087) :**\n\n**Cause la plus probable** : Fuite côté haute pression (injecteurs ou retours).\n**Base** : Le code P0087 indique une **pression carburant trop basse** dans le rail. L'odeur de gazole sous le capot à chaud et l'impossibilité de démarrer confirment une fuite visible ou interne (retour d'injecteurs, joints toriques durcis).\n\n**Vérifications immédiates** :\n1. **Contrôler les retours d'injecteurs** :\n   - Déposer les durites de retour des 4 injecteurs.\n   - Placer chaque retour dans une éprouvette graduée (même volume).\n   - **À chaud** : Un retour > 30-40 ml/min (tolérance constructeur) = injecteur ou joint à remplacer.\n   *(cas-020)*\n\n2. **Inspecter visuellement** :\n   - Traces de gazole sur les injecteurs, durites HP/BP, pompe haute pression.\n   - Joint torique du rail ou des injecteurs gonflé/durci.\n\n3. **Test de maintien de pression rail** :\n   - Couper le contact, noter la pression résiduelle dans le rail (manomètre dédié).\n   - Si chute > 20% en 10 min = fuite interne (injecteur, pompe HP, régulateur).\n\n**Prochaine étape** :\n- Si les retours sont hors tolérance → **Remplacer les joints toriques du jeu complet d'injecteurs** et refaire les tests.\n- Si un injecteur reste défectueux → **Contrôle au banc** (remplacement si nécessaire).\n- Si fuite persistante après joints neufs → **Pompe haute pression ou régulateur à remplacer** (risque de limaille, voir cas-008).\n\n⚠️ **Attention** : Ne pas remplacer la pompe HP sans rinçage complet du circuit (filtre, rail, injecteurs) sous peine de récidive. *(cas-008)*",
+      "turns": 3,
+      "latency_ms": 5861.2,
+      "stop_reason": "answered",
+      "tools_used": [
+        "decode_dtc",
+        "search_repair_cases"
+      ],
+      "tools_expected": [
+        "decode_dtc",
+        "search_repair_cases"
+      ],
+      "tools_exact": true,
+      "tools_covered": true,
+      "extra_tools": [],
+      "cases_grounded": [
+        "case-008",
+        "case-012",
+        "case-020"
+      ],
+      "cases_claimed": [],
+      "cases_hallucinated": [],
+      "cases_expected_found": [
+        "case-008",
+        "case-020"
+      ],
+      "cases_expected_missed": [],
+      "keywords_expected": [
+        "pression",
+        "carburant"
+      ],
+      "keywords_hit": [
+        "pression",
+        "carburant"
+      ],
+      "must_decline": false,
+      "declined_lexically": false,
+      "declined_structurally": false,
+      "decline_ok": null,
+      "degraded": false
+    },
+    {
+      "id": "s-008",
+      "type": "composite",
+      "input": "Plus de communication avec le calculateur moteur, compte-tours qui tombe a zero par moments, plein de codes U sur tous les boitiers. Code principal U0100.",
+      "answer": "**Diagnostic probable :**\nPerte de communication CAN généralisée due à un problème sur le bus CAN (faisceau ou connecteurs), basé sur :\n- Code **U0100** (perte de communication avec le calculateur moteur)\n- Codes **U** multiples sur tous les boîtiers (symptôme de bus CAN défaillant)\n- Compte-tours intermittent (lié à la perte de communication avec le calculateur moteur)\n\n**Cause la plus probable :**\nFaisceau CAN endommagé (oxydation, rupture, résistance de terminaison incorrecte) ou connecteur défectueux, souvent après une infiltration d'eau.\n\n**Prochaines étapes :**\n1. **Mesurer la résistance du bus CAN** (60 ohms attendus entre CAN-H et CAN-L au connecteur OBD-II).\n2. **Inspecter visuellement le faisceau CAN** aux points de passage (cloison, passages de portes, etc.).\n3. **Vérifier l'état des connecteurs** (oxydation, broches pliées, corrosion).\n\n*(cas-007)*",
+      "turns": 3,
+      "latency_ms": 3639.9,
+      "stop_reason": "answered",
+      "tools_used": [
+        "decode_dtc",
+        "search_repair_cases"
+      ],
+      "tools_expected": [
+        "decode_dtc",
+        "search_repair_cases"
+      ],
+      "tools_exact": true,
+      "tools_covered": true,
+      "extra_tools": [],
+      "cases_grounded": [
+        "case-007",
+        "case-009",
+        "case-017"
+      ],
+      "cases_claimed": [],
+      "cases_hallucinated": [],
+      "cases_expected_found": [
+        "case-007"
+      ],
+      "cases_expected_missed": [],
+      "keywords_expected": [
+        "can",
+        "communication"
+      ],
+      "keywords_hit": [
+        "can",
+        "communication"
+      ],
+      "must_decline": false,
+      "declined_lexically": false,
+      "declined_structurally": false,
+      "decline_ok": null,
+      "degraded": false
+    },
+    {
+      "id": "s-009",
+      "type": "simple",
+      "input": "Captur TCe qui cale n'importe quand une fois chaude, impossible de redemarrer pendant un quart d'heure puis ca repart normalement.",
+      "answer": "D'après les cas documentés, le symptôme **Captur TCe qui cale à chaud et refuse de redémarrer pendant 15 minutes** correspond très probablement à un **capteur défaillant thermiquement** (vilebrequin ou arbre à cames).\n\n### Cause la plus probable :\n- **Capteur d'arbre à cames (AAC) défectueux** (cas-010) ou **capteur de position vilebrequin (PMH) en défaut thermique** (cas-016).\n  → Ces capteurs perdent leur signal au-delà d'une certaine température, provoquant des calages et un blocage du démarrage jusqu'à refroidissement.\n\n### Prochaines étapes :\n1. **Lire les codes défauts** avec un outil OBD pour identifier si P0340 (AAC) ou P0335 (PMH) est présent.\n2. **Vérifier les signaux à l'oscilloscope** moteur chaud pendant les calages pour confirmer la perte de signal du capteur suspect.\n\nSi aucun code n'est présent, le problème peut être lié à un **connecteur ou faisceau dégradé** (à inspecter en priorité).\n\nJe peux décoder un code précis si vous en avez un. Sinon, quel est le résultat de la lecture OBD ?",
+      "turns": 2,
+      "latency_ms": 4585.2,
+      "stop_reason": "answered",
+      "tools_used": [
+        "search_repair_cases"
+      ],
+      "tools_expected": [
+        "search_repair_cases"
+      ],
+      "tools_exact": true,
+      "tools_covered": true,
+      "extra_tools": [],
+      "cases_grounded": [
+        "case-010",
+        "case-012",
+        "case-016"
+      ],
+      "cases_claimed": [],
+      "cases_hallucinated": [],
+      "cases_expected_found": [
+        "case-010",
+        "case-016"
+      ],
+      "cases_expected_missed": [],
+      "keywords_expected": [
+        "capteur"
+      ],
+      "keywords_hit": [
+        "capteur"
+      ],
+      "must_decline": false,
+      "declined_lexically": false,
+      "declined_structurally": false,
+      "decline_ok": null,
+      "degraded": false
+    },
+    {
+      "id": "s-010",
+      "type": "simple",
+      "input": "Boite auto AL4 qui donne des coups entre la 2 et la 3 puis se bloque en troisieme, surtout quand elle est chaude. Que faire ?",
+      "answer": "**Diagnostic probable :**\nBoîte auto AL4 avec à-coups entre la 2ème et 3ème, puis blocage en 3ème à chaud → **Capteur de régime d'entrée de boîte défaillant à chaud** (aggravé par une huile dégradée).\n*(cas-015)*\n\n**Vérifications à faire :**\n1. **Lire les codes défauts** (DTC) avec un outil de diagnostic pour confirmer P0715 ou un autre code lié à la boîte.\n2. **Contrôler l’huile de boîte** :\n   - État (noircie, odeur de brûlé) → vidange **obligatoire** (même si \"à vie\" selon le constructeur).\n   - Niveau à température contrôlée (procédure au tube de niveau).\n3. **Tester le capteur de régime d’entrée** à chaud (résistance, signal oscilloscope si possible).\n\n**Prochaine étape :**\nBranchez un outil de diagnostic pour relever les DTC et confirmer le défaut. Si P0715 est présent, remplacez le capteur et faites une vidange complète avec huile homologuée.",
+      "turns": 2,
+      "latency_ms": 21108.5,
+      "stop_reason": "answered",
+      "tools_used": [
+        "search_repair_cases"
+      ],
+      "tools_expected": [
+        "search_repair_cases"
+      ],
+      "tools_exact": true,
+      "tools_covered": true,
+      "extra_tools": [],
+      "cases_grounded": [
+        "case-010",
+        "case-012",
+        "case-015"
+      ],
+      "cases_claimed": [],
+      "cases_hallucinated": [],
+      "cases_expected_found": [
+        "case-015"
+      ],
+      "cases_expected_missed": [],
+      "keywords_expected": [
+        "boite",
+        "transmission"
+      ],
+      "keywords_hit": [],
+      "must_decline": false,
+      "declined_lexically": false,
+      "declined_structurally": false,
+      "decline_ok": null,
+      "degraded": false
+    },
+    {
+      "id": "s-011",
+      "type": "trap_out_of_domain",
+      "input": "Quelle est la meilleure recette de tarte aux pommes ?",
+      "answer": "Ceci est en dehors de mon domaine d'assistance. Je ne peux pas répondre à des questions sur des recettes de cuisine.",
+      "turns": 1,
+      "latency_ms": 564.2,
+      "stop_reason": "answered",
+      "tools_used": [],
+      "tools_expected": [],
+      "tools_exact": true,
+      "tools_covered": true,
+      "extra_tools": [],
+      "cases_grounded": [],
+      "cases_claimed": [],
+      "cases_hallucinated": [],
+      "cases_expected_found": [],
+      "cases_expected_missed": [],
+      "keywords_expected": [],
+      "keywords_hit": [],
+      "must_decline": true,
+      "declined_lexically": true,
+      "declined_structurally": true,
+      "decline_ok": true,
+      "degraded": false
+    },
+    {
+      "id": "s-012",
+      "type": "trap_out_of_domain",
+      "input": "Mon lave-vaisselle ne vidange plus et affiche une erreur E4. Comment je repare ca ?",
+      "answer": "C'est en dehors de mon scope. Je ne peux pas aider pour les lave-vaisselles.",
+      "turns": 1,
+      "latency_ms": 702.3,
+      "stop_reason": "answered",
+      "tools_used": [],
+      "tools_expected": [],
+      "tools_exact": true,
+      "tools_covered": true,
+      "extra_tools": [],
+      "cases_grounded": [],
+      "cases_claimed": [],
+      "cases_hallucinated": [],
+      "cases_expected_found": [],
+      "cases_expected_missed": [],
+      "keywords_expected": [],
+      "keywords_hit": [],
+      "must_decline": true,
+      "declined_lexically": false,
+      "declined_structurally": true,
+      "decline_ok": true,
+      "degraded": false
+    },
+    {
+      "id": "s-013",
+      "type": "trap_insufficient_info",
+      "input": "Ma voiture fait un bruit.",
+      "answer": "Quel type de bruit ? (ex. : cliquetis, grincement, sifflement, etc.)\nEt avez-vous un code défaut OBD-II allumé ? Si oui, lequel ?",
+      "turns": 1,
+      "latency_ms": 802.9,
+      "stop_reason": "answered",
+      "tools_used": [],
+      "tools_expected": [],
+      "tools_exact": true,
+      "tools_covered": true,
+      "extra_tools": [],
+      "cases_grounded": [],
+      "cases_claimed": [],
+      "cases_hallucinated": [],
+      "cases_expected_found": [],
+      "cases_expected_missed": [],
+      "keywords_expected": [],
+      "keywords_hit": [],
+      "must_decline": true,
+      "declined_lexically": true,
+      "declined_structurally": true,
+      "decline_ok": true,
+      "degraded": false
+    },
+    {
+      "id": "s-014",
+      "type": "trap_unknown_code",
+      "input": "J'ai le code B1234 sur mon tableau de bord, c'est grave ?",
+      "answer": "Je n’ai pas de définition pour le code **B1234** dans mes outils. Ce code n’est pas un code OBD-II standard (Pxxxx ou Uxxxx). Vérifiez s’il s’agit d’un code constructeur spécifique (ex. Renault, Peugeot, etc.) ou précisez la marque et le modèle de votre véhicule pour que je puisse chercher des cas de réparation correspondants.",
+      "turns": 2,
+      "latency_ms": 1747.7,
+      "stop_reason": "answered",
+      "tools_used": [
+        "decode_dtc"
+      ],
+      "tools_expected": [
+        "decode_dtc"
+      ],
+      "tools_exact": true,
+      "tools_covered": true,
+      "extra_tools": [],
+      "cases_grounded": [],
+      "cases_claimed": [],
+      "cases_hallucinated": [],
+      "cases_expected_found": [],
+      "cases_expected_missed": [],
+      "keywords_expected": [
+        "carrosserie"
+      ],
+      "keywords_hit": [],
+      "must_decline": false,
+      "declined_lexically": false,
+      "declined_structurally": false,
+      "decline_ok": null,
+      "degraded": false
+    },
+    {
+      "id": "s-015",
+      "type": "simple",
+      "input": "Mini Cooper essence, melange trop pauvre, trims a plus 25 pour cent, petit sifflement au ralenti moteur froid.",
+      "answer": "**Diagnostic probable :**\nMélange trop pauvre (trims +25%), sifflement au ralenti moteur froid → **prise d'air non mesurée au couvre-culasse** (membrane PCV percée).\n*Source :* (case-014) sur moteur 1.6 THP (EP6), symptômes identiques.\n\n**Prochaines vérifications :**\n1. **Fumigène** : localiser la fuite au niveau de la membrane du couvre-culasse.\n2. **Contrôle visuel** : vérifier l'état de la membrane PCV (si accessible sans démontage complet).\n3. **Test d'obturation** : boucher temporairement le circuit PCV pour confirmer la chute des trims.\n\n*Si la fuite est confirmée :*\n→ Remplacement du **couvre-culasse complet** (membrane non vendue séparément sur ce modèle).\n→ Remise à zéro des adaptatifs après réparation.",
+      "turns": 2,
+      "latency_ms": 6755.4,
+      "stop_reason": "answered",
+      "tools_used": [
+        "search_repair_cases"
+      ],
+      "tools_expected": [
+        "search_repair_cases"
+      ],
+      "tools_exact": true,
+      "tools_covered": true,
+      "extra_tools": [],
+      "cases_grounded": [
+        "case-011",
+        "case-012",
+        "case-014"
+      ],
+      "cases_claimed": [
+        "case-014"
+      ],
+      "cases_hallucinated": [],
+      "cases_expected_found": [
+        "case-014"
+      ],
+      "cases_expected_missed": [],
+      "keywords_expected": [
+        "admission",
+        "fuite"
+      ],
+      "keywords_hit": [
+        "fuite"
+      ],
+      "must_decline": false,
+      "declined_lexically": false,
+      "declined_structurally": false,
+      "decline_ok": null,
+      "degraded": false
+    }
+  ]
+}
