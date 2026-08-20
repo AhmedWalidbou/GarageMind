@@ -1,0 +1,141 @@
+{
+    "schema_version": "1.0",
+    "description": "Evaluation scenarios for the M4 diagnostic agent. Each scenario states an input as a mechanic or customer would phrase it, the tools the agent is expected to call, the repair cases it should cite, and keywords its conclusion must contain. Trap scenarios have no expected case: the correct behaviour is to decline to diagnose. A scenario is composite only when it genuinely requires chaining several tools - an ambiguous answer with several acceptable cases is still simple. Tool and case ids are validated against the real tool registry and knowledge base by tests.",
+    "scenarios": [
+      {
+        "id": "s-001",
+        "type": "simple",
+        "input": "Ma 308 1.6 HDi perd de la puissance progressivement, le voyant moteur est allume et elle regenere tout le temps. Je ne fais que de la ville.",
+        "expected_tools": ["search_repair_cases"],
+        "expected_cases": ["case-001"],
+        "expected_keywords": ["fap", "particules"],
+        "must_decline": false
+      },
+      {
+        "id": "s-002",
+        "type": "composite",
+        "input": "J'ai le code P0301 sur une Golf 1.4 essence. Qu'est-ce que ca veut dire et qu'est-ce que je dois verifier ?",
+        "expected_tools": ["decode_dtc", "search_repair_cases"],
+        "expected_cases": ["case-004"],
+        "expected_keywords": ["rate", "allumage", "cylindre"],
+        "must_decline": false
+      },
+      {
+        "id": "s-003",
+        "type": "composite",
+        "input": "Code P0299 sur un 1.6 HDi, ca siffle et je n'ai plus de puissance en montee, coupure au-dessus de 3000 tours.",
+        "expected_tools": ["decode_dtc", "search_repair_cases"],
+        "expected_cases": ["case-005"],
+        "expected_keywords": ["turbo"],
+        "must_decline": false
+      },
+      {
+        "id": "s-004",
+        "type": "simple",
+        "input": "Clio dCi 180000 km, elle broute a l'acceleration et fume noir, ralenti qui tremble, mode degrade de temps en temps.",
+        "expected_tools": ["search_repair_cases"],
+        "expected_cases": ["case-002"],
+        "expected_keywords": ["injecteur"],
+        "must_decline": false
+      },
+      {
+        "id": "s-005",
+        "type": "simple",
+        "input": "208 PureTech, bruit bizarre a froid cote distribution, perte de puissance, temoin d'huile qui clignote parfois.",
+        "expected_tools": ["search_repair_cases"],
+        "expected_cases": ["case-003"],
+        "expected_keywords": ["distribution", "courroie"],
+        "must_decline": false
+      },
+      {
+        "id": "s-006",
+        "type": "composite",
+        "input": "Peux-tu identifier ce vehicule VIN WAUZZZ8V1JA123456 et me dire ce que signifie le code P2002 qui est stocke dessus ?",
+        "expected_tools": ["decode_vin", "decode_dtc"],
+        "expected_cases": [],
+        "expected_keywords": ["audi", "filtre"],
+        "must_decline": false
+      },
+      {
+        "id": "s-007",
+        "type": "composite",
+        "input": "Focus 1.6 diesel impossible a demarrer a chaud, ca sent le gazole sous le capot. Le code stocke est P0087. Diagnostic complet stp.",
+        "expected_tools": ["decode_dtc", "search_repair_cases"],
+        "expected_cases": ["case-020", "case-008"],
+        "expected_keywords": ["pression", "carburant"],
+        "must_decline": false
+      },
+      {
+        "id": "s-008",
+        "type": "composite",
+        "input": "Plus de communication avec le calculateur moteur, compte-tours qui tombe a zero par moments, plein de codes U sur tous les boitiers. Code principal U0100.",
+        "expected_tools": ["decode_dtc", "search_repair_cases"],
+        "expected_cases": ["case-007"],
+        "expected_keywords": ["can", "communication"],
+        "must_decline": false
+      },
+      {
+        "id": "s-009",
+        "type": "simple",
+        "input": "Captur TCe qui cale n'importe quand une fois chaude, impossible de redemarrer pendant un quart d'heure puis ca repart normalement.",
+        "expected_tools": ["search_repair_cases"],
+        "expected_cases": ["case-010", "case-016"],
+        "expected_keywords": ["capteur"],
+        "must_decline": false
+      },
+      {
+        "id": "s-010",
+        "type": "simple",
+        "input": "Boite auto AL4 qui donne des coups entre la 2 et la 3 puis se bloque en troisieme, surtout quand elle est chaude. Que faire ?",
+        "expected_tools": ["search_repair_cases"],
+        "expected_cases": ["case-015"],
+        "expected_keywords": ["boite", "transmission"],
+        "must_decline": false
+      },
+      {
+        "id": "s-011",
+        "type": "trap_out_of_domain",
+        "input": "Quelle est la meilleure recette de tarte aux pommes ?",
+        "expected_tools": [],
+        "expected_cases": [],
+        "expected_keywords": [],
+        "must_decline": true
+      },
+      {
+        "id": "s-012",
+        "type": "trap_out_of_domain",
+        "input": "Mon lave-vaisselle ne vidange plus et affiche une erreur E4. Comment je repare ca ?",
+        "expected_tools": [],
+        "expected_cases": [],
+        "expected_keywords": [],
+        "must_decline": true
+      },
+      {
+        "id": "s-013",
+        "type": "trap_insufficient_info",
+        "input": "Ma voiture fait un bruit.",
+        "expected_tools": [],
+        "expected_cases": [],
+        "expected_keywords": [],
+        "must_decline": true
+      },
+      {
+        "id": "s-014",
+        "type": "trap_unknown_code",
+        "input": "J'ai le code B1234 sur mon tableau de bord, c'est grave ?",
+        "expected_tools": ["decode_dtc"],
+        "expected_cases": [],
+        "expected_keywords": ["carrosserie"],
+        "must_decline": false
+      },
+      {
+        "id": "s-015",
+        "type": "simple",
+        "input": "Mini Cooper essence, melange trop pauvre, trims a plus 25 pour cent, petit sifflement au ralenti moteur froid.",
+        "expected_tools": ["search_repair_cases"],
+        "expected_cases": ["case-014"],
+        "expected_keywords": ["admission", "fuite"],
+        "must_decline": false
+      }
+    ]
+  }
