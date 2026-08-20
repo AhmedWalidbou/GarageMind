@@ -49,8 +49,7 @@ garagemind = "src.cli:main"
 Repository = "https://github.com/AhmedWalidbou/GarageMind"
 
 [tool.setuptools]
-packages = ["src", "src.scan_engine", "src.uds", "src.anomaly", "src.ebr"]
-
+packages = ["src", "src.scan_engine", "src.uds", "src.anomaly", "src.ebr", "src.agent"]
 [tool.pytest.ini_options]
 pythonpath = ["."]
 testpaths = ["tests"]
