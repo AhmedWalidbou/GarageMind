@@ -8,6 +8,12 @@ Design decisions:
     - A single response shape (LLMResponse): either a tool call or a
       final answer. Each backend translates its provider's raw format
       into that shape, so provider quirks stop at this boundary.
+    - LLMResponse carries the provider's tool_call_id. The chat APIs
+      require the tool result message to reference the id of the call it
+      answers; dropping it here would make the conversation history
+      invalid and fail only at the first real inference, with an opaque
+      400. Providers that emit no id get a deterministic fallback so the
+      graph needs no special case.
     - FakeBackend replays a scripted sequence and records what it was
       sent. It makes the whole agent testable in milliseconds, with no
       API key and no network - which is also what lets anyone clone the
@@ -34,12 +40,13 @@ class LLMResponse:
     """
     One model turn. Either it asks for a tool, or it answers.
 
-    tool_name/tool_arguments are set when the model wants to act;
-    content holds the final answer otherwise.
+    tool_name/tool_arguments/tool_call_id are set when the model wants to
+    act; content holds the final answer otherwise.
     """
     content: str = ""
     tool_name: str | None = None
     tool_arguments: dict = field(default_factory=dict)
+    tool_call_id: str | None = None
     raw: Any = None
 
     @property
@@ -211,6 +218,9 @@ def parse_mistral_response(response: Any) -> LLMResponse:
     if tool_calls:
         call = tool_calls[0]
         name = call.function.name
+        # The tool result must reference this id. Fall back to a stable
+        # synthetic id when the provider does not supply one.
+        call_id = getattr(call, "id", None) or f"call_{name}"
         raw_args = call.function.arguments
         if isinstance(raw_args, dict):
             arguments = raw_args
@@ -226,6 +236,7 @@ def parse_mistral_response(response: Any) -> LLMResponse:
             content=message.content or "",
             tool_name=name,
             tool_arguments=arguments,
+            tool_call_id=call_id,
             raw=response,
         )
 

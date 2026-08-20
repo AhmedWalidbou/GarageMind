@@ -30,6 +30,14 @@ class FakeFunction:
 
 
 class FakeToolCall:
+    def __init__(self, name, arguments, call_id="call_abc123"):
+        self.id = call_id
+        self.function = FakeFunction(name, arguments)
+
+
+class IdlessToolCall:
+    """A provider response that carries no call id at all."""
+
     def __init__(self, name, arguments):
         self.function = FakeFunction(name, arguments)
 
@@ -87,6 +95,9 @@ class TestLLMResponse:
         second = LLMResponse()
         first.tool_arguments["x"] = 1
         assert second.tool_arguments == {}
+
+    def test_a_final_answer_carries_no_call_id(self):
+        assert LLMResponse(content="done").tool_call_id is None
 
     def test_base_backend_is_abstract(self):
         with pytest.raises(NotImplementedError):
@@ -246,6 +257,42 @@ class TestParseMistralResponse:
         assert parse_mistral_response(completion).raw is completion
 
 
+class TestToolCallIdProtocol:
+    """
+    The chat API requires the tool result message to reference the id of
+    the call it answers. Losing that id here would build an invalid
+    conversation and fail only at the first real inference, with an
+    opaque 400 - so it is pinned by tests.
+    """
+
+    def test_the_provider_call_id_is_preserved(self):
+        completion = FakeCompletion(FakeMessage(
+            tool_calls=[FakeToolCall("decode_dtc", '{"code": "P0420"}', call_id="tc_42")],
+        ))
+        assert parse_mistral_response(completion).tool_call_id == "tc_42"
+
+    def test_a_missing_call_id_falls_back_to_a_deterministic_one(self):
+        completion = FakeCompletion(FakeMessage(
+            tool_calls=[IdlessToolCall("decode_dtc", '{"code": "P0420"}')],
+        ))
+        assert parse_mistral_response(completion).tool_call_id == "call_decode_dtc"
+
+    def test_an_empty_call_id_also_falls_back(self):
+        completion = FakeCompletion(FakeMessage(
+            tool_calls=[FakeToolCall("decode_vin", "{}", call_id="")],
+        ))
+        assert parse_mistral_response(completion).tool_call_id == "call_decode_vin"
+
+    def test_every_tool_call_response_carries_an_id(self):
+        """No tool call may reach the graph without something to answer to."""
+        completion = FakeCompletion(FakeMessage(
+            tool_calls=[FakeToolCall("search_repair_cases", '{"query": "fumee noire"}')],
+        ))
+        response = parse_mistral_response(completion)
+        assert response.is_tool_call is True
+        assert response.tool_call_id
+
+
 # --- MistralBackend with an injected client ---
 
 class TestMistralBackend:
@@ -274,6 +321,7 @@ class TestMistralBackend:
         response = backend.complete([{"role": "user", "content": "P0420?"}])
         assert response.tool_name == "decode_dtc"
         assert response.tool_arguments == {"code": "P0420"}
+        assert response.tool_call_id == "call_abc123"
 
     def test_tools_are_translated_before_being_sent(self):
         backend = MistralBackend(api_key="test")
@@ -291,6 +339,18 @@ class TestMistralBackend:
         backend.complete([{"role": "user", "content": "hi"}])
         assert "tools" not in chat.payloads[0]
         assert "tool_choice" not in chat.payloads[0]
+
+    def test_messages_are_forwarded_untouched(self):
+        """The graph owns the history; the backend must not rewrite it."""
+        backend = MistralBackend(api_key="test")
+        chat = FakeChat(FakeCompletion(FakeMessage(content="ok")))
+        backend._client = FakeClient(chat)
+        messages = [
+            {"role": "system", "content": "rules"},
+            {"role": "user", "content": "hi"},
+        ]
+        backend.complete(messages)
+        assert chat.payloads[0]["messages"] == messages
 
     def test_generation_settings_are_forwarded(self):
         backend = MistralBackend(api_key="test", model="mistral-tiny", temperature=0.7, max_tokens=42)
@@ -313,6 +373,13 @@ class TestMistralBackend:
         assert response.is_tool_call is False
         assert "unavailable" in response.content
         assert "ConnectionError" in response.content
+
+    def test_a_degraded_response_is_never_mistaken_for_a_tool_call(self):
+        backend = MistralBackend(api_key="test")
+        backend._client = FakeClient(FakeChat(error=TimeoutError("slow")))
+        response = backend.complete([])
+        assert response.tool_name is None
+        assert response.tool_call_id is None
 
     def test_the_client_is_not_built_at_construction_time(self):
         """Importing and constructing must cost nothing and need no key."""
