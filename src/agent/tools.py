@@ -24,6 +24,7 @@ Design decisions:
       Module 1 finding.
 """
 
+import atexit
 from pathlib import Path
 from typing import Callable
 
@@ -59,10 +60,37 @@ def _get_retriever() -> HybridRetriever:
     return _retriever
 
 
-def reset_retriever() -> None:
-    """Drop the cached retriever. For tests only."""
+def close_retriever() -> None:
+    """
+    Release the Qdrant client held by the cached retriever.
+
+    Without this, the client is only collected when the interpreter is
+    already tearing down: its __del__ then runs after sys.meta_path is
+    gone and prints an ignored ImportError. Harmless, but it looks like
+    a crash to anyone running the CLI. Registered with atexit so the
+    close happens while imports still work.
+    """
     global _retriever
+    if _retriever is None:
+        return
+    store = getattr(getattr(_retriever, "dense", None), "store", None)
+    for candidate in (store, getattr(store, "client", None)):
+        closer = getattr(candidate, "close", None)
+        if callable(closer):
+            try:
+                closer()
+            except Exception:
+                pass  # Shutdown must never raise.
+            break
     _retriever = None
+
+
+def reset_retriever() -> None:
+    """Drop the cached retriever, closing it first. For tests only."""
+    close_retriever()
+
+
+atexit.register(close_retriever)
 
 
 # --- Tools ---

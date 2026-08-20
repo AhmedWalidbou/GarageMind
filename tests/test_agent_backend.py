@@ -404,3 +404,21 @@ class TestGetBackend:
     def test_unknown_backend_is_rejected(self):
         with pytest.raises(ValueError, match="Unknown backend"):
             get_backend("gpt-9")
+
+
+class TestSdkImportPath:
+    """
+    The SDK import is the one thing the injected-client tests cannot
+    cover: they never build a real client. A wrong path fails only at
+    runtime, as a vague ImportError swallowed by the degrade handler -
+    which is exactly what happened once. So it is checked directly.
+    """
+
+    def test_the_sdk_class_is_importable(self):
+        from mistralai.client import Mistral
+        assert Mistral is not None
+
+    def test_the_backend_builds_a_real_client(self):
+        backend = MistralBackend(api_key="test-key-not-used")
+        assert backend.client is not None
+        assert type(backend.client).__name__ == "Mistral"

@@ -134,7 +134,11 @@ class MistralBackend(LLMBackend):
     @property
     def client(self):
         if self._client is None:
-            from mistralai import Mistral
+            # The 2.x SDK ships `mistralai` as a namespace package; the
+            # client lives in `mistralai.client`. Importing from the root
+            # silently yields an empty namespace, so this path is pinned
+            # by a test rather than assumed.
+            from mistralai.client import Mistral
             key = self.api_key
             if not key:
                 raise RuntimeError(

@@ -12,6 +12,8 @@ must not fail the suite for a missing artifact.
 
 from pathlib import Path
 
+from src.agent import tools
+
 import pytest
 
 from src.agent.tools import (
@@ -169,3 +171,89 @@ class TestSearchIntegration:
     def test_english_query_works(self):
         out = search_repair_cases("misfire on cylinder one when warm", top_k=2)
         assert not out.startswith("Error")
+
+
+class TestRetrieverShutdown:
+    """
+    close_retriever exists to stop the Qdrant client being collected
+    during interpreter teardown, where its __del__ prints an ignored
+    ImportError. The tests below pin the contract; the absence of the
+    warning itself was verified by running the CLI, since pytest never
+    tears the interpreter down mid-suite.
+    """
+
+    def test_closing_an_empty_cache_is_a_no_op(self):
+        tools.reset_retriever()
+        tools.close_retriever()  # must not raise
+
+    def test_the_cached_retriever_is_dropped(self):
+        tools._retriever = object()
+        tools.close_retriever()
+        assert tools._retriever is None
+
+    def test_the_store_is_closed_when_it_can_be(self):
+        closed = []
+
+        class FakeStore:
+            def close(self):
+                closed.append(True)
+
+        class FakeDense:
+            store = FakeStore()
+
+        class FakeRetriever:
+            dense = FakeDense()
+
+        tools._retriever = FakeRetriever()
+        tools.close_retriever()
+        assert closed == [True]
+
+    def test_a_failing_close_never_propagates(self):
+        """Shutdown must stay silent even when the client misbehaves."""
+
+        class ExplodingStore:
+            def close(self):
+                raise RuntimeError("client already gone")
+
+        class FakeDense:
+            store = ExplodingStore()
+
+        class FakeRetriever:
+            dense = FakeDense()
+
+        tools._retriever = FakeRetriever()
+        tools.close_retriever()  # must not raise
+        assert tools._retriever is None
+
+    def test_a_retriever_without_a_closable_store_is_still_dropped(self):
+        class FakeRetriever:
+            dense = None
+
+        tools._retriever = FakeRetriever()
+        tools.close_retriever()
+        assert tools._retriever is None
+
+    def test_reset_retriever_closes_as_well(self):
+        closed = []
+
+        class FakeStore:
+            def close(self):
+                closed.append(True)
+
+        class FakeDense:
+            store = FakeStore()
+
+        class FakeRetriever:
+            dense = FakeDense()
+
+        tools._retriever = FakeRetriever()
+        tools.reset_retriever()
+        assert closed == [True]
+        assert tools._retriever is None
+
+    def test_the_close_is_registered_for_interpreter_exit(self):
+        """Without the atexit hook the fix only works when called by hand."""
+        # atexit exposes no portable way to inspect what is registered,
+        # so the registration is asserted on the source itself.
+        source = Path("src/agent/tools.py").read_text(encoding="utf-8")
+        assert "atexit.register(close_retriever)" in source

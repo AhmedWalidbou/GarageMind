@@ -159,6 +159,49 @@ def cmd_analyze_can(args) -> int:
     return 0
 
 
+def cmd_diagnose(args) -> int:
+    """Ask the ReAct agent a diagnostic question."""
+    # Imported here, not at module level: loading the agent pulls in
+    # LangGraph, the Mistral SDK and the retriever stack. Paying that on
+    # `garagemind version` would make the whole CLI feel broken.
+    from src.agent.backend import get_backend
+    from src.agent.graph import run_agent
+
+    question = " ".join(args.question).strip()
+    if not question:
+        _eprint("Error: the question is empty.")
+        return 2
+
+    backend = get_backend("mistral", model=args.model)
+    if not backend.api_key:
+        _eprint(
+            "Error: MISTRAL_API_KEY is not set.\n"
+            "Add it to a .env file at the project root, or export it in "
+            "your shell, then run the command again."
+        )
+        return 2
+
+    result = run_agent(question, backend, max_turns=args.max_turns)
+
+    if args.trace:
+        print(f"\n--- reasoning trace ({result.turns} turns, "
+              f"{result.latency_ms:.0f} ms) ---")
+        if not result.trace:
+            print("  (answered directly, no tool used)")
+        for step, entry in enumerate(result.trace, start=1):
+            flag = " [repeated]" if entry["repeated"] else ""
+            arguments = json.dumps(entry["arguments"], ensure_ascii=False)
+            print(f"  {step}. {entry['tool']}({arguments}){flag}")
+        print("--- end of trace ---\n")
+
+    print(result.answer)
+
+    if result.hit_turn_limit:
+        _eprint(f"\nNote: stopped after {result.turns} turns without concluding.")
+        return 1
+    return 0
+
+
 def cmd_version(args) -> int:
     print(f"GarageMind {VERSION}")
     return 0
@@ -189,6 +232,15 @@ def build_parser() -> argparse.ArgumentParser:
                        f"({', '.join(sorted(set(BRAND_DBC_GLOBS)))})")
     p_can.add_argument("--rows", type=int, default=100000)
     p_can.set_defaults(func=cmd_analyze_can)
+
+    p_diag = sub.add_parser("diagnose", help="Ask the diagnostic agent a question")
+    p_diag.add_argument("question", nargs="+",
+                        help="The symptom, fault code or vehicle question")
+    p_diag.add_argument("--trace", action="store_true",
+                        help="Show which tools the agent used")
+    p_diag.add_argument("--model", default="mistral-small-latest")
+    p_diag.add_argument("--max-turns", type=int, default=5)
+    p_diag.set_defaults(func=cmd_diagnose)
 
     p_ver = sub.add_parser("version", help="Show version")
     p_ver.set_defaults(func=cmd_version)
