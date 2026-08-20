@@ -4,7 +4,7 @@ AI-powered vehicle diagnostic copilot: from raw CAN bus frames to an explainable
 
 GarageMind reads a vehicle's low-level data (CAN bus, OBD-II, UDS), decodes it into named physical signals, reads stored fault codes together with the conditions under which they occurred, and produces a prioritized diagnostic report. The end goal is an agentic assistant that reasons about faults the way an experienced mechanic does, cross-referencing live signals, fault codes and repair knowledge.
 
-Status: Module 1 (Scan Engine) is complete and tested. Module 2 (Anomaly Benchmark Lab) has a full two-model benchmark on the four HCRL attack types, with stealthier datasets and sequence models planned as extensions. Module 3 (EBR-RAG) benchmarks three retrieval systems over a curated bilingual repair-case base. Modules 4 and 5 are in progress; see the roadmap.
+Status: Module 1 (Scan Engine) is complete and tested. Module 2 (Anomaly Benchmark Lab) has a full two-model benchmark on the four HCRL attack types, with stealthier datasets and sequence models planned as extensions. Module 3 (EBR-RAG) benchmarks three retrieval systems over a curated bilingual repair-case base. Module 4 (Diagnostic Agent) is a LangGraph ReAct agent evaluated on a 15-scenario suite written before the agent itself. Module 5 is in progress; see the roadmap.
 
 ## Motivation
 
@@ -21,7 +21,7 @@ A trouble code on its own is not a diagnosis. The same code can have different r
 | M1 | Scan Engine | Complete | CAN/DBC decoding, UDS diagnostics, unified diagnostic report |
 | M2 | Anomaly Benchmark Lab | Benchmarked (2 models) | LSTM autoencoder vs classical baseline on the 4 HCRL attacks; sequence models on stealthier data planned |
 | M3 | EBR-RAG | Benchmarked (3 systems) | Retrieval over curated repair cases; dense, BM25 and hybrid RRF compared |
-| M4 | Diagnostic Agent | Planned | LangGraph agent that asks clarifying questions and reasons over evidence |
+| M4 | Diagnostic Agent | Evaluated (15 scenarios) | LangGraph ReAct agent that chains diagnostic tools, cites the cases it used and declines out-of-scope questions |
 | M5 | Interface and Edge | Planned | Dashboard and a quantized edge SLM for on-device inference |
 
 ## Module 1: Scan Engine
@@ -162,6 +162,132 @@ python scripts/build_index.py
 python scripts/evaluate_retrieval.py
 ```
 
+## Module 4: Diagnostic Agent
+
+A LangGraph ReAct agent that answers a mechanic's question by chaining the
+tools built in Modules 1 and 3, then grounding its conclusion in the cases
+those tools returned.
+
+### Protocol
+
+The 15 evaluation scenarios were written **before** any agent code, following
+the method used for the 25 retrieval queries of Module 3. Each scenario
+declares the tools the question requires, the repair cases that should be
+retrieved, keywords the answer should contain, and whether the agent must
+decline. Every case identifier in the file is checked against the real corpus
+by a test, so the expectations cannot drift away from the knowledge base.
+
+Four of the scenarios are traps rather than diagnoses: two questions outside
+the automotive domain, one question with no symptom to work from, and one
+fault code the tools do not know. Three of them require an outright refusal;
+the fourth expects the opposite, that the agent looks the code up and then
+states plainly that it has no definition for it. They exist because an agent
+that answers everything confidently is the failure mode worth measuring.
+
+### Architecture
+
+    START -> reason -> [route] -> act -> reason -> ...
+                          |
+                          +-> finish -> END
+
+Three nodes with one responsibility each. `reason` calls the model, `act` runs
+one tool and feeds the result back, `finish` writes the conclusion. The router
+only reads state and picks an edge: LangGraph discards whatever a routing
+function assigns, so writing the answer there would have produced an empty
+result with no error at all.
+
+Four tools are exposed: `search_repair_cases` (the hybrid RRF retriever of
+Module 3), `decode_dtc` and `decode_vin` (Module 1, offline tables only), and
+`analyze_can_log` (Module 1 bus summary). No tool ever raises; bad input comes
+back as a readable error string that the agent can act on and correct.
+
+The model backend sits behind a small interface with two implementations: a
+Mistral client, and a scripted fake used by the whole test suite. An API
+failure degrades into a plain answer rather than an exception, so the agent
+reports a problem instead of crashing.
+
+Two guards bound the loop: a five-turn budget checked before returning to the
+model, and detection of identical repeated tool calls, which are answered with
+a notice rather than the same result again.
+
+### Results (15 scenarios, mistral-small-latest, temperature 0)
+
+| Metric | Value |
+| --- | --- |
+| Tool selection (exact set match) | 0.93 (14/15) |
+| Citation grounding | 1.00 (0 hallucinated case ids) |
+| Expected-case recall | 1.00 |
+| Traps requiring a refusal, declined | 3/3 |
+| Answer keyword coverage | 0.71 |
+| Repeated tool calls | 0 |
+| Runs hitting the turn limit | 0 |
+| Mean turns per question | 2.07 |
+| Latency, warm (median / mean) | 3.3 s / 4.4 s |
+| Latency, first question (cold) | 20.3 s |
+
+Citation grounding is measured against what the tools actually returned, never
+against the answer text alone: a case identifier the tools never produced
+counts as a hallucination regardless of how plausible it looks. Across the
+whole suite there were none.
+
+### Findings
+
+**The agent outperformed one of its own specifications.** The single tool-
+selection miss is scenario s-003, where the agent retrieved repair cases and
+concluded without also calling `decode_dtc`. On inspection the agent was
+right: corpus entries already carry their fault codes, so the extra call would
+have added nothing. The scenario was over-specified, listing the tools that
+could plausibly be called rather than those the answer required. The benchmark
+was deliberately left unchanged — adjusting an expectation after seeing the
+result manufactures the score instead of measuring it.
+
+**Refusal cannot be detected by wording alone.** Declining is scored on a
+structural signal (no tool called, no case cited), with a lexical check kept
+alongside as a secondary indicator. The lexical detector recognised only 2 of
+the 3 refusals the agent actually produced, missing valid phrasings it had not
+been given. Had the harness relied on wording, it would have reported a 33%
+refusal rate for behaviour that was in fact perfect.
+
+**Infrastructure failures must not be scored as behaviour.** One run failed on
+a transient API error. The backend degraded correctly, but the first version
+of the harness counted that non-answer as an agent response and depressed two
+metrics. Degraded runs are now detected, retried once, and excluded from
+scoring rather than averaged in.
+
+**Latency is dominated by a one-off cost.** The first question pays ~17 s to
+load the embedding model; subsequent questions run in ~3 s, and questions the
+agent declines answer in under a second. Reporting a single average would have
+misrepresented both.
+
+### Caveats
+
+Fifteen scenarios is a small suite. Between two consecutive runs, keyword
+coverage moved from 0.57 to 0.71 and mean latency from 2.5 s to 4.4 s — the
+metrics are not stable to the second decimal, and a single run should not be
+used to compare close systems. The evaluation also covers one model at
+temperature 0; nothing here says how the agent behaves on a different backend.
+
+### Reproducing
+
+```bash
+# Ask the agent a question, showing which tools it used
+garagemind diagnose "P0420 on a Clio 1.5 dCi, engine light on" --trace
+
+# Run the full scenario evaluation (writes results/agent_eval.json)
+python scripts/evaluate_agent.py
+
+# Cheap smoke run on the first three scenarios
+python scripts/evaluate_agent.py --limit 3
+```
+
+The agent needs a Mistral API key in a `.env` file at the project root:
+
+```
+MISTRAL_API_KEY=your_key_here
+```
+
+The test suite does not: it runs entirely against the scripted fake backend.
+
 ## Installation
 
 ```bash
@@ -215,7 +341,7 @@ These figures come from a generic DBC applied to a different vehicle variant tha
 pytest -v
 ```
 
-The suite contains 184 unit tests covering DTC encoding and interpretation, the ISO-TP transport layer including sequence-error detection, the UDS ECU simulator and client, the report generator including the zero-variance correlation edge case, the command-line interface including exit codes and input validation, the anomaly preprocessing pipeline (temporal-split leakage guards, window labeling at the threshold boundary), the LSTM autoencoder (architecture, training, bilateral calibration, end-to-end detection of both irregular and flood-like synthetic attacks), the Isolation Forest baseline (aggregation verified value by value, determinism under a fixed seed), and the retrieval stack (knowledge-base validation at the boundary, e5 prefix handling with a fake model, idempotent Qdrant re-indexing, case-level deduplication, BM25 tokenization including accent stripping and DTC-code preservation, and RRF fusion arithmetic verified by hand).
+The suite contains 321 unit tests covering DTC encoding and interpretation, the ISO-TP transport layer including sequence-error detection, the UDS ECU simulator and client, the report generator including the zero-variance correlation edge case, the command-line interface including exit codes and input validation, the anomaly preprocessing pipeline (temporal-split leakage guards, window labeling at the threshold boundary), the LSTM autoencoder (architecture, training, bilateral calibration, end-to-end detection of both irregular and flood-like synthetic attacks), the Isolation Forest baseline (aggregation verified value by value, determinism under a fixed seed), and the retrieval stack (knowledge-base validation at the boundary, e5 prefix handling with a fake model, idempotent Qdrant re-indexing, case-level deduplication, BM25 tokenization including accent stripping and DTC-code preservation, and RRF fusion arithmetic verified by hand). The agent layer adds the scenario-file integrity checks, the tool dispatch contract (every failure path returns readable text instead of raising), the LLM backend including the tool-call id protocol the chat API requires and the degradation path when the API is unreachable, and the graph itself: turn budget, loop detection, tool-error feedback, and a regression test pinning that the conclusion is written by a node rather than by the routing function. Every agent test runs against a scripted fake backend, so the suite needs no API key and no network.
 
 ## Technology and standards
 
@@ -229,7 +355,7 @@ Module 2 extensions: evaluate the same benchmark protocol on the ROAD dataset (O
 
 Module 3 extensions: widen the knowledge base and the evaluation set, since a perfect Hit@1 on 25 queries means the current set can no longer measure progress. Metadata filtering by brand and system, a calibrated "no relevant case" threshold and a larger-embedding ablation are deferred until then.
 
-Module 4 will introduce a LangGraph diagnostic agent that actively requests missing information and reasons jointly over live signals, fault codes and retrieved documentation, using the retrieval stack of Module 3 as a tool.
+Module 4 delivered that LangGraph diagnostic agent. Remaining work on it is measurement rather than capability: the scenario suite is small enough (n=15) that a single run does not separate close systems, and the evaluation currently covers one model. A larger suite, repeated runs and a second backend would tighten the numbers below.
 
 Module 5 will provide an interactive dashboard and a quantized small language model for on-device, offline inference.
 
